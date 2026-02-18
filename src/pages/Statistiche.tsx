@@ -1,6 +1,6 @@
 import { StatCard } from "@/components/StatCard";
 import { formatCurrency } from "@/lib/format";
-import { costCategories, revenueCategories, getCategoryTotal, getRevenueCategoryTotal, getTotalCosts, getTotalRevenue } from "@/data/businessPlan";
+import { defaultCostCategories as costCategories, defaultRevenueCategories as revenueCategories, getCategoryTotal, getRevenueCategoryTotal, getTotalCosts, getTotalRevenue } from "@/data/businessPlan";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 
 const COLORS = [

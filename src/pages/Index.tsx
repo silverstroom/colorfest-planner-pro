@@ -1,6 +1,6 @@
 import { StatCard } from "@/components/StatCard";
 import { formatCurrency } from "@/lib/format";
-import { getTotalCosts, getTotalRevenue, costCategories, revenueCategories, getCategoryTotal } from "@/data/businessPlan";
+import { getTotalCosts, getTotalRevenue, defaultCostCategories as costCategories, defaultRevenueCategories as revenueCategories, getCategoryTotal } from "@/data/businessPlan";
 import { TrendingUp, TrendingDown, AlertCircle } from "lucide-react";
 
 export default function Dashboard() {
@@ -18,7 +18,7 @@ export default function Dashboard() {
       <div className="gradient-primary px-4 pb-8 pt-12">
         <p className="text-sm font-medium opacity-80 text-primary-foreground">Business Plan</p>
         <h1 className="font-heading text-3xl font-bold text-primary-foreground">Color Fest 14</h1>
-        <p className="mt-1 text-sm opacity-70 text-primary-foreground">Edizione 2025 • Dati di riferimento CF13</p>
+        <p className="mt-1 text-sm opacity-70 text-primary-foreground">Edizione 2025</p>
       </div>
 
       {/* Stats */}
