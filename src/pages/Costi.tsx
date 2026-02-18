@@ -3,7 +3,7 @@ import { CategoryCard } from "@/components/CategoryCard";
 import { getCategoryTotal, type CostItem } from "@/data/businessPlan";
 import { formatCurrency } from "@/lib/format";
 import { StatCard } from "@/components/StatCard";
-import { Plus, Check, X, Pencil, Trash2, ChevronUp, ChevronDown } from "lucide-react";
+import { Plus, Check, X, Pencil, Trash2, ChevronUp, ChevronDown, HandCoins } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
@@ -13,7 +13,7 @@ import { useCostCategories } from "@/hooks/useBusinessData";
 function CostItemForm({
   form, setForm, onSubmit, onCancel, submitLabel, showConfirmed,
 }: {
-  form: { name: string; amount: string; paid: string; toPay: string; notes: string; confirmed: boolean };
+  form: { name: string; amount: string; paid: string; toPay: string; notes: string; confirmed: boolean; anticipoPersona: string; anticipoImporto: string };
   setForm: React.Dispatch<React.SetStateAction<typeof form>>;
   onSubmit: () => void;
   onCancel: () => void;
@@ -51,6 +51,19 @@ function CostItemForm({
           <Label className="text-sm">Confermato</Label>
         </div>
       )}
+      <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 space-y-2">
+        <Label className="text-xs font-semibold text-primary flex items-center gap-1"><HandCoins className="h-3 w-3" /> Anticipo</Label>
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <Label className="text-xs text-muted-foreground mb-1 block">Chi anticipa</Label>
+            <Input placeholder="Nome persona" value={form.anticipoPersona} onChange={(e) => setForm((f) => ({ ...f, anticipoPersona: e.target.value }))} />
+          </div>
+          <div>
+            <Label className="text-xs text-muted-foreground mb-1 block">Importo (€)</Label>
+            <Input placeholder="0" type="number" value={form.anticipoImporto} onChange={(e) => setForm((f) => ({ ...f, anticipoImporto: e.target.value }))} />
+          </div>
+        </div>
+      </div>
       <div className="flex gap-2">
         <button onClick={onSubmit} className="flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground">
           <Check className="h-3 w-3" /> {submitLabel}
@@ -113,6 +126,12 @@ function CostItemDetail({ item, onEdit, onDelete, onMoveUp, onMoveDown, isFirst,
       {item.notes && (
         <p className="text-xs text-muted-foreground bg-muted/40 rounded p-2 italic">{item.notes}</p>
       )}
+      {item.anticipoPersona && item.anticipoImporto && item.anticipoImporto > 0 && (
+        <div className="flex items-center gap-1.5 text-xs bg-primary/10 rounded p-2">
+          <HandCoins className="h-3 w-3 text-primary" />
+          <span className="text-primary font-medium">Anticipo: {formatCurrency(item.anticipoImporto)} da {item.anticipoPersona}</span>
+        </div>
+      )}
     </div>
   );
 }
@@ -121,7 +140,7 @@ export default function CostiPage() {
   const { categories, loading, addItem, updateItem, deleteItem, moveItem } = useCostCategories();
   const [addingTo, setAddingTo] = useState<string | null>(null);
   const [editingItem, setEditingItem] = useState<string | null>(null);
-  const emptyForm = { name: "", amount: "", paid: "", toPay: "", notes: "", confirmed: false };
+  const emptyForm = { name: "", amount: "", paid: "", toPay: "", notes: "", confirmed: false, anticipoPersona: "", anticipoImporto: "" };
   const [form, setForm] = useState(emptyForm);
 
   const totals = categories.reduce(
@@ -147,6 +166,8 @@ export default function CostiPage() {
       toPay,
       notes: form.notes || undefined,
       confirmed: isCachetCategory(catId) ? form.confirmed : undefined,
+      anticipoPersona: form.anticipoPersona || undefined,
+      anticipoImporto: parseFloat(form.anticipoImporto) || undefined,
     });
     resetForm();
   };
@@ -163,6 +184,8 @@ export default function CostiPage() {
       toPay,
       notes: form.notes || undefined,
       confirmed: isCachetCategory(catId) ? form.confirmed : undefined,
+      anticipoPersona: form.anticipoPersona || undefined,
+      anticipoImporto: parseFloat(form.anticipoImporto) || undefined,
     });
     resetForm();
   };
@@ -181,6 +204,8 @@ export default function CostiPage() {
       toPay: String(item.toPay),
       notes: item.notes || "",
       confirmed: item.confirmed || false,
+      anticipoPersona: item.anticipoPersona || "",
+      anticipoImporto: item.anticipoImporto ? String(item.anticipoImporto) : "",
     });
   };
 

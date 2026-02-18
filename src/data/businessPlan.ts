@@ -7,6 +7,8 @@ export interface CostItem {
   notes?: string;
   confirmed?: boolean;
   date?: string;
+  anticipoPersona?: string;
+  anticipoImporto?: number;
 }
 
 export interface CostCategory {

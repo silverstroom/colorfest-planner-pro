@@ -17,6 +17,8 @@ function mapCostRows(rows: any[]): CostCategory[] {
         notes: row.notes || undefined,
         confirmed: row.confirmed,
         date: row.date || undefined,
+        anticipoPersona: row.anticipo_persona || undefined,
+        anticipoImporto: Number(row.anticipo_importo) || undefined,
       });
     }
   }
@@ -77,6 +79,8 @@ export function useCostCategories() {
       confirmed: item.confirmed || false,
       date: item.date || null,
       sort_order: nextOrder,
+      anticipo_persona: item.anticipoPersona || null,
+      anticipo_importo: item.anticipoImporto || 0,
     }).select().single();
     if (!error && data) {
       await fetchData();
@@ -123,6 +127,8 @@ export function useCostCategories() {
     if (item.notes !== undefined) updates.notes = item.notes || null;
     if (item.confirmed !== undefined) updates.confirmed = item.confirmed;
     if (item.date !== undefined) updates.date = item.date;
+    if (item.anticipoPersona !== undefined) updates.anticipo_persona = item.anticipoPersona || null;
+    if (item.anticipoImporto !== undefined) updates.anticipo_importo = item.anticipoImporto || 0;
 
     const { error } = await supabase.from("cost_items").update(updates).eq("id", itemId);
     if (!error) await fetchData();
