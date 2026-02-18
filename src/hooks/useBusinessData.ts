@@ -48,7 +48,7 @@ export function useCostCategories() {
     const { data, error } = await supabase
       .from("cost_items")
       .select("*")
-      .order("created_at", { ascending: true });
+      .order("sort_order", { ascending: true });
     if (!error && data && data.length > 0) {
       setCategories(mapCostRows(data));
     } else if (!error && data && data.length === 0) {
@@ -61,6 +61,12 @@ export function useCostCategories() {
   useEffect(() => { fetchData(); }, [fetchData]);
 
   const addItem = async (categoryId: string, item: Omit<CostItem, "id">) => {
+    // Get max sort_order for this category
+    const { data: existing } = await supabase.from("cost_items")
+      .select("sort_order").eq("category_id", categoryId)
+      .order("sort_order", { ascending: false }).limit(1);
+    const nextOrder = (existing && existing.length > 0 ? existing[0].sort_order + 1 : 0);
+
     const { data, error } = await supabase.from("cost_items").insert({
       category_id: categoryId,
       name: item.name,
@@ -70,12 +76,42 @@ export function useCostCategories() {
       notes: item.notes || null,
       confirmed: item.confirmed || false,
       date: item.date || null,
+      sort_order: nextOrder,
     }).select().single();
     if (!error && data) {
       await fetchData();
       return data.id;
     }
     return null;
+  };
+
+  const moveItem = async (categoryId: string, itemId: string, direction: "up" | "down") => {
+    const cat = categories.find((c) => c.id === categoryId);
+    if (!cat) return;
+    const idx = cat.items.findIndex((i) => i.id === itemId);
+    if (idx < 0) return;
+    const swapIdx = direction === "up" ? idx - 1 : idx + 1;
+    if (swapIdx < 0 || swapIdx >= cat.items.length) return;
+
+    const currentItem = cat.items[idx];
+    const swapItem = cat.items[swapIdx];
+
+    // Optimistic update
+    setCategories((prev) =>
+      prev.map((c) => {
+        if (c.id !== categoryId) return c;
+        const newItems = [...c.items];
+        [newItems[idx], newItems[swapIdx]] = [newItems[swapIdx], newItems[idx]];
+        return { ...c, items: newItems };
+      })
+    );
+
+    // Persist: swap sort_order values
+    await Promise.all([
+      supabase.from("cost_items").update({ sort_order: swapIdx }).eq("id", currentItem.id),
+      supabase.from("cost_items").update({ sort_order: idx }).eq("id", swapItem.id),
+    ]);
+    await fetchData();
   };
 
   const updateItem = async (itemId: string, item: Partial<CostItem>) => {
@@ -97,7 +133,7 @@ export function useCostCategories() {
     if (!error) await fetchData();
   };
 
-  return { categories, loading, addItem, updateItem, deleteItem, refetch: fetchData };
+  return { categories, loading, addItem, updateItem, deleteItem, moveItem, refetch: fetchData };
 }
 
 export function useRevenueCategories() {

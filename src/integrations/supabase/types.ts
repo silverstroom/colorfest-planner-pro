@@ -25,6 +25,7 @@ export type Database = {
           name: string
           notes: string | null
           paid: number
+          sort_order: number
           to_pay: number
           updated_at: string
         }
@@ -38,6 +39,7 @@ export type Database = {
           name: string
           notes?: string | null
           paid?: number
+          sort_order?: number
           to_pay?: number
           updated_at?: string
         }
@@ -51,6 +53,7 @@ export type Database = {
           name?: string
           notes?: string | null
           paid?: number
+          sort_order?: number
           to_pay?: number
           updated_at?: string
         }

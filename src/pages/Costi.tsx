@@ -3,7 +3,7 @@ import { CategoryCard } from "@/components/CategoryCard";
 import { getCategoryTotal, type CostItem } from "@/data/businessPlan";
 import { formatCurrency } from "@/lib/format";
 import { StatCard } from "@/components/StatCard";
-import { Plus, Check, X, Pencil, Trash2 } from "lucide-react";
+import { Plus, Check, X, Pencil, Trash2, ChevronUp, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
@@ -63,7 +63,7 @@ function CostItemForm({
   );
 }
 
-function CostItemDetail({ item, onEdit, onDelete }: { item: CostItem; onEdit: () => void; onDelete: () => void }) {
+function CostItemDetail({ item, onEdit, onDelete, onMoveUp, onMoveDown, isFirst, isLast }: { item: CostItem; onEdit: () => void; onDelete: () => void; onMoveUp?: () => void; onMoveDown?: () => void; isFirst?: boolean; isLast?: boolean }) {
   return (
     <div className="rounded-lg border border-border/50 bg-background/50 p-3 space-y-2">
       <div className="flex items-start justify-between">
@@ -76,6 +76,16 @@ function CostItemDetail({ item, onEdit, onDelete }: { item: CostItem; onEdit: ()
           )}
         </div>
         <div className="flex gap-1">
+          {!isFirst && onMoveUp && (
+            <button onClick={onMoveUp} className="rounded p-1 text-muted-foreground hover:text-foreground hover:bg-muted">
+              <ChevronUp className="h-3.5 w-3.5" />
+            </button>
+          )}
+          {!isLast && onMoveDown && (
+            <button onClick={onMoveDown} className="rounded p-1 text-muted-foreground hover:text-foreground hover:bg-muted">
+              <ChevronDown className="h-3.5 w-3.5" />
+            </button>
+          )}
           <button onClick={onEdit} className="rounded p-1 text-muted-foreground hover:text-foreground hover:bg-muted">
             <Pencil className="h-3.5 w-3.5" />
           </button>
@@ -108,7 +118,7 @@ function CostItemDetail({ item, onEdit, onDelete }: { item: CostItem; onEdit: ()
 }
 
 export default function CostiPage() {
-  const { categories, loading, addItem, updateItem, deleteItem } = useCostCategories();
+  const { categories, loading, addItem, updateItem, deleteItem, moveItem } = useCostCategories();
   const [addingTo, setAddingTo] = useState<string | null>(null);
   const [editingItem, setEditingItem] = useState<string | null>(null);
   const emptyForm = { name: "", amount: "", paid: "", toPay: "", notes: "", confirmed: false };
@@ -219,7 +229,7 @@ export default function CostiPage() {
               className={`[animation-delay:${i * 50}ms]`}
             >
               <div className="space-y-3">
-                {cat.items.map((item) => (
+                {cat.items.map((item, itemIdx) => (
                   <div key={item.id}>
                     {editingItem === item.id ? (
                       <CostItemForm
@@ -235,6 +245,10 @@ export default function CostiPage() {
                         item={item}
                         onEdit={() => startEdit(item)}
                         onDelete={() => handleDelete(cat.id, item.id)}
+                        onMoveUp={() => moveItem(cat.id, item.id, "up")}
+                        onMoveDown={() => moveItem(cat.id, item.id, "down")}
+                        isFirst={itemIdx === 0}
+                        isLast={itemIdx === cat.items.length - 1}
                       />
                     )}
                   </div>
