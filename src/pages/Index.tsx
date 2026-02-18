@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { StatCard } from "@/components/StatCard";
 import { formatCurrency } from "@/lib/format";
 import { getCategoryTotal } from "@/data/businessPlan";
-import { AlertCircle, HandCoins, Info } from "lucide-react";
+import { HandCoins, Info } from "lucide-react";
 import { useCostCategories, useRevenueCategories } from "@/hooks/useBusinessData";
 import { supabase } from "@/integrations/supabase/client";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -151,15 +151,6 @@ export default function Dashboard() {
           </Popover>
         </div>
 
-        {Math.abs(balance) > 0 && balance < 0 && (
-          <div className="flex items-center gap-3 rounded-lg bg-secondary/30 p-3">
-            <AlertCircle className="h-5 w-5 text-secondary-foreground" />
-            <div>
-              <p className="text-sm font-semibold text-secondary-foreground">Da coprire</p>
-              <p className="text-xs text-muted-foreground">{formatCurrency(Math.abs(balance))} considerando le entrate attuali</p>
-            </div>
-          </div>
-        )}
 
         {/* Anticipi Section */}
         {totalAnticipi > 0 && (
