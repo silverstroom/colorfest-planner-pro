@@ -51,7 +51,7 @@ export default function Dashboard() {
   );
 
   const totalRevenue = revenue.actual + diceRevenue;
-  const balance = totalRevenue - costs.paid;
+  const balance = totalRevenue - costs.amount;
 
   const topCostCategories = costCategories
     .map((c) => ({ label: c.label, icon: c.icon, total: getCategoryTotal(c).amount }))
@@ -129,8 +129,16 @@ export default function Dashboard() {
                 )}
                 <div className="border-t border-border my-1" />
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Costi pagati</span>
-                  <span className="font-semibold text-destructive">- {formatCurrency(costs.paid)}</span>
+                  <span className="text-muted-foreground">Costi totali</span>
+                  <span className="font-semibold text-destructive">- {formatCurrency(costs.amount)}</span>
+                </div>
+                <div className="flex justify-between pl-3">
+                  <span className="text-muted-foreground">Già pagati</span>
+                  <span className="text-foreground">{formatCurrency(costs.paid)}</span>
+                </div>
+                <div className="flex justify-between pl-3">
+                  <span className="text-muted-foreground">Da pagare</span>
+                  <span className="text-foreground">{formatCurrency(costs.toPay)}</span>
                 </div>
                 <div className="border-t border-border my-1" />
                 <div className="flex justify-between font-heading font-bold">
@@ -138,7 +146,7 @@ export default function Dashboard() {
                   <span className={balance >= 0 ? "text-primary" : "text-destructive"}>{formatCurrency(balance)}</span>
                 </div>
               </div>
-              <p className="text-[10px] text-muted-foreground mt-1">Entrate effettive − Costi già pagati</p>
+              <p className="text-[10px] text-muted-foreground mt-1">Entrate effettive − Costi totali</p>
             </PopoverContent>
           </Popover>
         </div>
