@@ -1,19 +1,43 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CategoryCard } from "@/components/CategoryCard";
 import { defaultRevenueCategories, getRevenueCategoryTotal, type RevenueCategory, type RevenueItem } from "@/data/businessPlan";
 import { formatCurrency } from "@/lib/format";
 import { StatCard } from "@/components/StatCard";
-import { Plus, Check, X, Pencil, Trash2 } from "lucide-react";
+import { Plus, Check, X, Pencil, Trash2, RefreshCw, Ticket, ExternalLink } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { supabase } from "@/integrations/supabase/client";
+
+// Types for DICE data
+interface DiceTicketType {
+  name: string;
+  price: number;
+  count: number;
+  revenue: number;
+}
+
+interface DiceEvent {
+  id: string;
+  name: string;
+  startDatetime: string;
+  endDatetime: string;
+  url: string;
+  totalAllocation: number;
+  totalSold: number;
+  totalRevenue: number;
+  ticketTypes: DiceTicketType[];
+}
+
+interface DiceData {
+  events: DiceEvent[];
+  totals: { totalSold: number; totalAllocation: number; totalRevenue: number };
+}
+
+// --- Shared form components ---
 
 function RevenueItemForm({
-  form,
-  setForm,
-  onSubmit,
-  onCancel,
-  submitLabel,
+  form, setForm, onSubmit, onCancel, submitLabel,
 }: {
   form: { name: string; estimated: string; actual: string; notes: string };
   setForm: React.Dispatch<React.SetStateAction<typeof form>>;
@@ -56,12 +80,8 @@ function RevenueItemDetail({ item, onEdit, onDelete }: { item: RevenueItem; onEd
       <div className="flex items-start justify-between">
         <p className="font-semibold text-card-foreground">{item.name}</p>
         <div className="flex gap-1">
-          <button onClick={onEdit} className="rounded p-1 text-muted-foreground hover:text-foreground hover:bg-muted">
-            <Pencil className="h-3.5 w-3.5" />
-          </button>
-          <button onClick={onDelete} className="rounded p-1 text-muted-foreground hover:text-destructive hover:bg-muted">
-            <Trash2 className="h-3.5 w-3.5" />
-          </button>
+          <button onClick={onEdit} className="rounded p-1 text-muted-foreground hover:text-foreground hover:bg-muted"><Pencil className="h-3.5 w-3.5" /></button>
+          <button onClick={onDelete} className="rounded p-1 text-muted-foreground hover:text-destructive hover:bg-muted"><Trash2 className="h-3.5 w-3.5" /></button>
         </div>
       </div>
       <div className="grid grid-cols-2 gap-2 text-xs">
@@ -74,12 +94,119 @@ function RevenueItemDetail({ item, onEdit, onDelete }: { item: RevenueItem; onEd
           <p className="font-heading font-bold text-primary">{formatCurrency(item.actual)}</p>
         </div>
       </div>
-      {item.notes && (
-        <p className="text-xs text-muted-foreground bg-muted/40 rounded p-2 italic">{item.notes}</p>
-      )}
+      {item.notes && <p className="text-xs text-muted-foreground bg-muted/40 rounded p-2 italic">{item.notes}</p>}
     </div>
   );
 }
+
+// --- DICE Section ---
+
+function DiceSection({ diceData, loading, error, onRefresh }: {
+  diceData: DiceData | null;
+  loading: boolean;
+  error: string | null;
+  onRefresh: () => void;
+}) {
+  if (loading) {
+    return (
+      <div className="rounded-lg bg-card shadow-sm p-4 animate-pulse">
+        <div className="flex items-center gap-2 mb-3">
+          <Ticket className="h-5 w-5 text-primary" />
+          <span className="font-heading font-semibold text-card-foreground">Biglietti DICE</span>
+        </div>
+        <div className="h-20 bg-muted rounded" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-lg bg-card shadow-sm p-4">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <Ticket className="h-5 w-5 text-destructive" />
+            <span className="font-heading font-semibold text-card-foreground">Biglietti DICE</span>
+          </div>
+          <button onClick={onRefresh} className="rounded p-1 text-muted-foreground hover:text-foreground">
+            <RefreshCw className="h-4 w-4" />
+          </button>
+        </div>
+        <p className="text-sm text-destructive">{error}</p>
+      </div>
+    );
+  }
+
+  if (!diceData) return null;
+
+  return (
+    <div className="space-y-3">
+      {/* DICE Summary */}
+      <div className="rounded-lg bg-card shadow-sm p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Ticket className="h-5 w-5 text-primary" />
+            <span className="font-heading font-semibold text-card-foreground">Biglietti DICE — Live</span>
+          </div>
+          <button onClick={onRefresh} className="rounded p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+            <RefreshCw className="h-4 w-4" />
+          </button>
+        </div>
+        <div className="grid grid-cols-3 gap-2 text-xs mb-3">
+          <div className="rounded bg-muted/60 p-2 text-center">
+            <p className="text-muted-foreground">Venduti</p>
+            <p className="font-heading text-lg font-bold text-primary">{diceData.totals.totalSold}</p>
+          </div>
+          <div className="rounded bg-muted/60 p-2 text-center">
+            <p className="text-muted-foreground">Allocazione</p>
+            <p className="font-heading text-lg font-bold text-card-foreground">{diceData.totals.totalAllocation.toLocaleString()}</p>
+          </div>
+          <div className="rounded bg-muted/60 p-2 text-center">
+            <p className="text-muted-foreground">Incasso</p>
+            <p className="font-heading text-lg font-bold text-primary">{formatCurrency(diceData.totals.totalRevenue)}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Per-event breakdown */}
+      {diceData.events.map((event) => (
+        <div key={event.id} className="rounded-lg border border-border/50 bg-background/50 p-3 space-y-2">
+          <div className="flex items-start justify-between">
+            <p className="font-semibold text-sm text-card-foreground">{event.name}</p>
+            <a href={event.url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary">
+              <ExternalLink className="h-3.5 w-3.5" />
+            </a>
+          </div>
+          <div className="grid grid-cols-3 gap-2 text-xs">
+            <div className="rounded bg-muted/60 p-2">
+              <p className="text-muted-foreground">Venduti</p>
+              <p className="font-heading font-bold text-card-foreground">{event.totalSold}</p>
+            </div>
+            <div className="rounded bg-muted/60 p-2">
+              <p className="text-muted-foreground">Allocazione</p>
+              <p className="font-heading font-bold text-card-foreground">{event.totalAllocation.toLocaleString()}</p>
+            </div>
+            <div className="rounded bg-muted/60 p-2">
+              <p className="text-muted-foreground">Incasso</p>
+              <p className="font-heading font-bold text-primary">{formatCurrency(event.totalRevenue)}</p>
+            </div>
+          </div>
+          {event.ticketTypes.length > 0 && (
+            <div className="space-y-1">
+              {event.ticketTypes.map((tt, idx) => (
+                <div key={idx} className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>{tt.name}</span>
+                  <span>{tt.count} × {formatCurrency(tt.price)} = {formatCurrency(tt.revenue)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// --- Main Page ---
 
 export default function EntratePage() {
   const [categories, setCategories] = useState<RevenueCategory[]>(defaultRevenueCategories);
@@ -87,6 +214,28 @@ export default function EntratePage() {
   const [editingItem, setEditingItem] = useState<string | null>(null);
   const emptyForm = { name: "", estimated: "", actual: "", notes: "" };
   const [form, setForm] = useState(emptyForm);
+
+  // DICE state
+  const [diceData, setDiceData] = useState<DiceData | null>(null);
+  const [diceLoading, setDiceLoading] = useState(true);
+  const [diceError, setDiceError] = useState<string | null>(null);
+
+  const fetchDice = async () => {
+    setDiceLoading(true);
+    setDiceError(null);
+    try {
+      const { data, error } = await supabase.functions.invoke('dice-sales');
+      if (error) throw new Error(error.message);
+      if (!data?.success) throw new Error(data?.error || 'Errore sconosciuto');
+      setDiceData({ events: data.events, totals: data.totals });
+    } catch (e: any) {
+      setDiceError(e.message);
+    } finally {
+      setDiceLoading(false);
+    }
+  };
+
+  useEffect(() => { fetchDice(); }, []);
 
   const totals = categories.reduce(
     (acc, cat) => {
@@ -96,55 +245,33 @@ export default function EntratePage() {
     { estimated: 0, actual: 0 }
   );
 
-  const resetForm = () => {
-    setForm(emptyForm);
-    setAddingTo(null);
-    setEditingItem(null);
+  // Add DICE revenue to totals
+  const totalWithDice = {
+    estimated: totals.estimated,
+    actual: totals.actual + (diceData?.totals.totalRevenue || 0),
   };
+
+  const resetForm = () => { setForm(emptyForm); setAddingTo(null); setEditingItem(null); };
 
   const handleAdd = (catId: string) => {
     if (!form.name) return;
-    const newItem: RevenueItem = {
-      id: `new_${Date.now()}`,
-      name: form.name,
-      estimated: parseFloat(form.estimated) || 0,
-      actual: parseFloat(form.actual) || 0,
-      notes: form.notes || undefined,
-    };
-    setCategories((prev) =>
-      prev.map((c) => (c.id === catId ? { ...c, items: [...c.items, newItem] } : c))
-    );
+    const newItem: RevenueItem = { id: `new_${Date.now()}`, name: form.name, estimated: parseFloat(form.estimated) || 0, actual: parseFloat(form.actual) || 0, notes: form.notes || undefined };
+    setCategories((prev) => prev.map((c) => (c.id === catId ? { ...c, items: [...c.items, newItem] } : c)));
     resetForm();
   };
 
   const handleEdit = (catId: string, itemId: string) => {
     if (!form.name) return;
-    setCategories((prev) =>
-      prev.map((c) =>
-        c.id === catId
-          ? {
-              ...c,
-              items: c.items.map((item) =>
-                item.id === itemId
-                  ? { ...item, name: form.name, estimated: parseFloat(form.estimated) || 0, actual: parseFloat(form.actual) || 0, notes: form.notes || undefined }
-                  : item
-              ),
-            }
-          : c
-      )
-    );
+    setCategories((prev) => prev.map((c) => c.id === catId ? { ...c, items: c.items.map((item) => item.id === itemId ? { ...item, name: form.name, estimated: parseFloat(form.estimated) || 0, actual: parseFloat(form.actual) || 0, notes: form.notes || undefined } : item) } : c));
     resetForm();
   };
 
   const handleDelete = (catId: string, itemId: string) => {
-    setCategories((prev) =>
-      prev.map((c) => (c.id === catId ? { ...c, items: c.items.filter((i) => i.id !== itemId) } : c))
-    );
+    setCategories((prev) => prev.map((c) => (c.id === catId ? { ...c, items: c.items.filter((i) => i.id !== itemId) } : c)));
   };
 
   const startEdit = (item: RevenueItem) => {
-    setEditingItem(item.id);
-    setAddingTo(null);
+    setEditingItem(item.id); setAddingTo(null);
     setForm({ name: item.name, estimated: String(item.estimated), actual: String(item.actual), notes: item.notes || "" });
   };
 
@@ -157,10 +284,14 @@ export default function EntratePage() {
 
       <div className="mx-auto max-w-lg px-4 mt-4 space-y-3">
         <div className="grid grid-cols-2 gap-3">
-          <StatCard label="Stimate" value={formatCurrency(totals.estimated)} variant="default" />
-          <StatCard label="Effettive" value={formatCurrency(totals.actual)} variant="success" />
+          <StatCard label="Stimate" value={formatCurrency(totalWithDice.estimated)} variant="default" />
+          <StatCard label="Effettive" value={formatCurrency(totalWithDice.actual)} variant="success" />
         </div>
 
+        {/* DICE Live Tickets */}
+        <DiceSection diceData={diceData} loading={diceLoading} error={diceError} onRefresh={fetchDice} />
+
+        {/* Manual categories */}
         {categories.map((cat, i) => {
           const catTot = getRevenueCategoryTotal(cat);
           return (
@@ -176,36 +307,16 @@ export default function EntratePage() {
                 {cat.items.map((item) => (
                   <div key={item.id}>
                     {editingItem === item.id ? (
-                      <RevenueItemForm
-                        form={form}
-                        setForm={setForm as any}
-                        onSubmit={() => handleEdit(cat.id, item.id)}
-                        onCancel={resetForm}
-                        submitLabel="Salva"
-                      />
+                      <RevenueItemForm form={form} setForm={setForm as any} onSubmit={() => handleEdit(cat.id, item.id)} onCancel={resetForm} submitLabel="Salva" />
                     ) : (
-                      <RevenueItemDetail
-                        item={item}
-                        onEdit={() => startEdit(item)}
-                        onDelete={() => handleDelete(cat.id, item.id)}
-                      />
+                      <RevenueItemDetail item={item} onEdit={() => startEdit(item)} onDelete={() => handleDelete(cat.id, item.id)} />
                     )}
                   </div>
                 ))}
-
                 {addingTo === cat.id ? (
-                  <RevenueItemForm
-                    form={form}
-                    setForm={setForm as any}
-                    onSubmit={() => handleAdd(cat.id)}
-                    onCancel={resetForm}
-                    submitLabel="Aggiungi"
-                  />
+                  <RevenueItemForm form={form} setForm={setForm as any} onSubmit={() => handleAdd(cat.id)} onCancel={resetForm} submitLabel="Aggiungi" />
                 ) : (
-                  <button
-                    onClick={() => { resetForm(); setAddingTo(cat.id); }}
-                    className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-md border border-dashed border-border py-2.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
-                  >
+                  <button onClick={() => { resetForm(); setAddingTo(cat.id); }} className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-md border border-dashed border-border py-2.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors">
                     <Plus className="h-3.5 w-3.5" /> Aggiungi voce
                   </button>
                 )}

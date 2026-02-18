@@ -1,1 +1,4 @@
 project_id = "pnyoxsoumqoffgjjyxoi"
+
+[functions.dice-sales]
+verify_jwt = false
