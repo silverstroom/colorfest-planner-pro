@@ -7,10 +7,9 @@ export default function Dashboard() {
   const costs = getTotalCosts();
   const revenue = getTotalRevenue();
   const balance = revenue.actual - costs.paid;
-  const topCostCategories = costCategories.
-  map((c) => ({ label: c.label, icon: c.icon, total: getCategoryTotal(c).amount })).
-  sort((a, b) => b.total - a.total).
-  slice(0, 4);
+  const topCostCategories = costCategories
+    .map((c) => ({ label: c.label, icon: c.icon, total: getCategoryTotal(c).amount }))
+    .filter((c) => c.total > 0);
 
   return (
     <div className="min-h-screen pb-24">
