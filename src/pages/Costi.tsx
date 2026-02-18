@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { CategoryCard } from "@/components/CategoryCard";
-import { defaultCostCategories, getCategoryTotal, type CostCategory, type CostItem } from "@/data/businessPlan";
+import { getCategoryTotal, type CostItem } from "@/data/businessPlan";
 import { formatCurrency } from "@/lib/format";
 import { StatCard } from "@/components/StatCard";
 import { Plus, Check, X, Pencil, Trash2 } from "lucide-react";
@@ -8,14 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { useCostCategories } from "@/hooks/useBusinessData";
 
 function CostItemForm({
-  form,
-  setForm,
-  onSubmit,
-  onCancel,
-  submitLabel,
-  showConfirmed,
+  form, setForm, onSubmit, onCancel, submitLabel, showConfirmed,
 }: {
   form: { name: string; amount: string; paid: string; toPay: string; notes: string; confirmed: boolean };
   setForm: React.Dispatch<React.SetStateAction<typeof form>>;
@@ -112,7 +108,7 @@ function CostItemDetail({ item, onEdit, onDelete }: { item: CostItem; onEdit: ()
 }
 
 export default function CostiPage() {
-  const [categories, setCategories] = useState<CostCategory[]>(defaultCostCategories);
+  const { categories, loading, addItem, updateItem, deleteItem } = useCostCategories();
   const [addingTo, setAddingTo] = useState<string | null>(null);
   const [editingItem, setEditingItem] = useState<string | null>(null);
   const emptyForm = { name: "", amount: "", paid: "", toPay: "", notes: "", confirmed: false };
@@ -126,60 +122,43 @@ export default function CostiPage() {
     { amount: 0, paid: 0, toPay: 0 }
   );
 
-  const resetForm = () => {
-    setForm(emptyForm);
-    setAddingTo(null);
-    setEditingItem(null);
-  };
-
+  const resetForm = () => { setForm(emptyForm); setAddingTo(null); setEditingItem(null); };
   const isCachetCategory = (catId: string) => catId.startsWith("cachet");
 
-  const handleAdd = (catId: string) => {
+  const handleAdd = async (catId: string) => {
     if (!form.name) return;
     const amount = parseFloat(form.amount) || 0;
     const paid = parseFloat(form.paid) || 0;
     const toPay = form.toPay ? parseFloat(form.toPay) : Math.max(0, amount - paid);
-    const newItem: CostItem = {
-      id: `new_${Date.now()}`,
+    await addItem(catId, {
       name: form.name,
       amount,
       paid,
       toPay,
       notes: form.notes || undefined,
       confirmed: isCachetCategory(catId) ? form.confirmed : undefined,
-    };
-    setCategories((prev) =>
-      prev.map((c) => (c.id === catId ? { ...c, items: [...c.items, newItem] } : c))
-    );
+    });
     resetForm();
   };
 
-  const handleEdit = (catId: string, itemId: string) => {
+  const handleEdit = async (catId: string, itemId: string) => {
     if (!form.name) return;
     const amount = parseFloat(form.amount) || 0;
     const paid = parseFloat(form.paid) || 0;
     const toPay = form.toPay ? parseFloat(form.toPay) : Math.max(0, amount - paid);
-    setCategories((prev) =>
-      prev.map((c) =>
-        c.id === catId
-          ? {
-              ...c,
-              items: c.items.map((item) =>
-                item.id === itemId
-                  ? { ...item, name: form.name, amount, paid, toPay, notes: form.notes || undefined, confirmed: isCachetCategory(catId) ? form.confirmed : item.confirmed }
-                  : item
-              ),
-            }
-          : c
-      )
-    );
+    await updateItem(itemId, {
+      name: form.name,
+      amount,
+      paid,
+      toPay,
+      notes: form.notes || undefined,
+      confirmed: isCachetCategory(catId) ? form.confirmed : undefined,
+    });
     resetForm();
   };
 
-  const handleDelete = (catId: string, itemId: string) => {
-    setCategories((prev) =>
-      prev.map((c) => (c.id === catId ? { ...c, items: c.items.filter((i) => i.id !== itemId) } : c))
-    );
+  const handleDelete = async (catId: string, itemId: string) => {
+    await deleteItem(itemId);
   };
 
   const startEdit = (item: CostItem) => {
@@ -195,11 +174,24 @@ export default function CostiPage() {
     });
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen pb-24">
+        <div className="bg-card px-4 pb-4 pt-12 border-b border-border">
+          <h1 className="font-heading text-2xl font-bold text-foreground">Costi</h1>
+        </div>
+        <div className="flex items-center justify-center mt-20">
+          <p className="text-muted-foreground">Caricamento...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen pb-24">
       <div className="bg-card px-4 pb-4 pt-12 border-b border-border">
         <h1 className="font-heading text-2xl font-bold text-foreground">Costi</h1>
-        <p className="text-sm text-muted-foreground">Color Fest 14 — Edizione 2025</p>
+        <p className="text-sm text-muted-foreground">Color Fest 14 — Edizione 2026</p>
       </div>
 
       <div className="mx-auto max-w-lg px-4 mt-4 space-y-3">
