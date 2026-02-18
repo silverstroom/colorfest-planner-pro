@@ -1,7 +1,8 @@
 import { StatCard } from "@/components/StatCard";
 import { formatCurrency } from "@/lib/format";
-import { defaultCostCategories as costCategories, defaultRevenueCategories as revenueCategories, getCategoryTotal, getRevenueCategoryTotal, getTotalCosts, getTotalRevenue } from "@/data/businessPlan";
+import { getCategoryTotal, getRevenueCategoryTotal } from "@/data/businessPlan";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { useCostCategories, useRevenueCategories } from "@/hooks/useBusinessData";
 
 const COLORS = [
   "hsl(24, 95%, 53%)",
@@ -14,8 +15,36 @@ const COLORS = [
 ];
 
 export default function StatistichePage() {
-  const costs = getTotalCosts();
-  const revenue = getTotalRevenue();
+  const { categories: costCategories, loading: loadingCosts } = useCostCategories();
+  const { categories: revenueCategories, loading: loadingRevenue } = useRevenueCategories();
+
+  if (loadingCosts || loadingRevenue) {
+    return (
+      <div className="min-h-screen pb-24">
+        <div className="bg-card px-4 pb-4 pt-12 border-b border-border">
+          <h1 className="font-heading text-2xl font-bold text-foreground">Statistiche</h1>
+        </div>
+        <div className="flex items-center justify-center mt-20">
+          <p className="text-muted-foreground">Caricamento...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const costs = costCategories.reduce(
+    (acc, cat) => {
+      const t = getCategoryTotal(cat);
+      return { amount: acc.amount + t.amount, paid: acc.paid + t.paid, toPay: acc.toPay + t.toPay };
+    },
+    { amount: 0, paid: 0, toPay: 0 }
+  );
+  const revenue = revenueCategories.reduce(
+    (acc, cat) => {
+      const t = getRevenueCategoryTotal(cat);
+      return { estimated: acc.estimated + t.estimated, actual: acc.actual + t.actual };
+    },
+    { estimated: 0, actual: 0 }
+  );
 
   const costData = costCategories
     .map((c) => ({
@@ -38,16 +67,15 @@ export default function StatistichePage() {
     <div className="min-h-screen pb-24">
       <div className="bg-card px-4 pb-4 pt-12 border-b border-border">
         <h1 className="font-heading text-2xl font-bold text-foreground">Statistiche</h1>
-        <p className="text-sm text-muted-foreground">Panoramica finanziaria CF13</p>
+        <p className="text-sm text-muted-foreground">Panoramica finanziaria CF14</p>
       </div>
 
       <div className="mx-auto max-w-lg px-4 mt-4 space-y-6">
         <div className="grid grid-cols-2 gap-3">
           <StatCard label="Margine" value={formatCurrency(revenue.actual - costs.paid)} variant="success" />
-          <StatCard label="% Pagato" value={`${Math.round((costs.paid / costs.amount) * 100)}%`} />
+          <StatCard label="% Pagato" value={costs.amount > 0 ? `${Math.round((costs.paid / costs.amount) * 100)}%` : '0%'} />
         </div>
 
-        {/* Bar Chart - Overview */}
         <div className="rounded-lg bg-card p-4 shadow-sm">
           <h3 className="mb-3 font-heading text-sm font-bold text-card-foreground">Preventivo vs Effettivo</h3>
           <ResponsiveContainer width="100%" height={200}>
@@ -61,7 +89,6 @@ export default function StatistichePage() {
           </ResponsiveContainer>
         </div>
 
-        {/* Pie - Costs */}
         <div className="rounded-lg bg-card p-4 shadow-sm">
           <h3 className="mb-3 font-heading text-sm font-bold text-card-foreground">Distribuzione Costi</h3>
           <ResponsiveContainer width="100%" height={200}>
@@ -88,7 +115,6 @@ export default function StatistichePage() {
           </div>
         </div>
 
-        {/* Bar - Revenue */}
         <div className="rounded-lg bg-card p-4 shadow-sm">
           <h3 className="mb-3 font-heading text-sm font-bold text-card-foreground">Entrate per Categoria</h3>
           <ResponsiveContainer width="100%" height={200}>

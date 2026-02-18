@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { CategoryCard } from "@/components/CategoryCard";
-import { defaultRevenueCategories, getRevenueCategoryTotal, type RevenueCategory, type RevenueItem } from "@/data/businessPlan";
+import { getRevenueCategoryTotal, type RevenueItem } from "@/data/businessPlan";
 import { formatCurrency } from "@/lib/format";
 import { StatCard } from "@/components/StatCard";
 import { Plus, Check, X, Pencil, Trash2, RefreshCw, Ticket, ExternalLink, ChevronUp, ChevronDown } from "lucide-react";
@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
+import { useRevenueCategories } from "@/hooks/useBusinessData";
 
 // Types for DICE data
 interface DiceTicketType {
@@ -107,6 +108,8 @@ function DiceSection({ diceData, loading, error, onRefresh }: {
   error: string | null;
   onRefresh: () => void;
 }) {
+  const [expanded, setExpanded] = useState(false);
+
   if (loading) {
     return (
       <div className="rounded-lg bg-card shadow-sm p-4 animate-pulse">
@@ -138,14 +141,9 @@ function DiceSection({ diceData, loading, error, onRefresh }: {
 
   if (!diceData) return null;
 
-  const [expanded, setExpanded] = useState(false);
-
   return (
     <div className="rounded-lg bg-card shadow-sm overflow-hidden">
-      <button
-        onClick={() => setExpanded(!expanded)}
-        className="flex w-full items-center justify-between p-4 text-left"
-      >
+      <button onClick={() => setExpanded(!expanded)} className="flex w-full items-center justify-between p-4 text-left">
         <div className="flex items-center gap-2">
           <Ticket className="h-5 w-5 text-primary" />
           <div>
@@ -154,10 +152,7 @@ function DiceSection({ diceData, loading, error, onRefresh }: {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            onClick={(e) => { e.stopPropagation(); onRefresh(); }}
-            className="rounded p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-          >
+          <button onClick={(e) => { e.stopPropagation(); onRefresh(); }} className="rounded p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
             <RefreshCw className="h-4 w-4" />
           </button>
           {expanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
@@ -221,16 +216,13 @@ function DiceSection({ diceData, loading, error, onRefresh }: {
   );
 }
 
-// --- Main Page ---
-
 export default function EntratePage() {
-  const [categories, setCategories] = useState<RevenueCategory[]>(defaultRevenueCategories);
+  const { categories, loading, addItem, updateItem, deleteItem } = useRevenueCategories();
   const [addingTo, setAddingTo] = useState<string | null>(null);
   const [editingItem, setEditingItem] = useState<string | null>(null);
   const emptyForm = { name: "", estimated: "", actual: "", notes: "" };
   const [form, setForm] = useState(emptyForm);
 
-  // DICE state
   const [diceData, setDiceData] = useState<DiceData | null>(null);
   const [diceLoading, setDiceLoading] = useState(true);
   const [diceError, setDiceError] = useState<string | null>(null);
@@ -260,7 +252,6 @@ export default function EntratePage() {
     { estimated: 0, actual: 0 }
   );
 
-  // Add DICE revenue to totals
   const totalWithDice = {
     estimated: totals.estimated,
     actual: totals.actual + (diceData?.totals.totalRevenue || 0),
@@ -268,21 +259,30 @@ export default function EntratePage() {
 
   const resetForm = () => { setForm(emptyForm); setAddingTo(null); setEditingItem(null); };
 
-  const handleAdd = (catId: string) => {
+  const handleAdd = async (catId: string) => {
     if (!form.name) return;
-    const newItem: RevenueItem = { id: `new_${Date.now()}`, name: form.name, estimated: parseFloat(form.estimated) || 0, actual: parseFloat(form.actual) || 0, notes: form.notes || undefined };
-    setCategories((prev) => prev.map((c) => (c.id === catId ? { ...c, items: [...c.items, newItem] } : c)));
+    await addItem(catId, {
+      name: form.name,
+      estimated: parseFloat(form.estimated) || 0,
+      actual: parseFloat(form.actual) || 0,
+      notes: form.notes || undefined,
+    });
     resetForm();
   };
 
-  const handleEdit = (catId: string, itemId: string) => {
+  const handleEdit = async (catId: string, itemId: string) => {
     if (!form.name) return;
-    setCategories((prev) => prev.map((c) => c.id === catId ? { ...c, items: c.items.map((item) => item.id === itemId ? { ...item, name: form.name, estimated: parseFloat(form.estimated) || 0, actual: parseFloat(form.actual) || 0, notes: form.notes || undefined } : item) } : c));
+    await updateItem(itemId, {
+      name: form.name,
+      estimated: parseFloat(form.estimated) || 0,
+      actual: parseFloat(form.actual) || 0,
+      notes: form.notes || undefined,
+    });
     resetForm();
   };
 
-  const handleDelete = (catId: string, itemId: string) => {
-    setCategories((prev) => prev.map((c) => (c.id === catId ? { ...c, items: c.items.filter((i) => i.id !== itemId) } : c)));
+  const handleDelete = async (catId: string, itemId: string) => {
+    await deleteItem(itemId);
   };
 
   const startEdit = (item: RevenueItem) => {
@@ -290,11 +290,24 @@ export default function EntratePage() {
     setForm({ name: item.name, estimated: String(item.estimated), actual: String(item.actual), notes: item.notes || "" });
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen pb-24">
+        <div className="bg-card px-4 pb-4 pt-12 border-b border-border">
+          <h1 className="font-heading text-2xl font-bold text-foreground">Entrate</h1>
+        </div>
+        <div className="flex items-center justify-center mt-20">
+          <p className="text-muted-foreground">Caricamento...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen pb-24">
       <div className="bg-card px-4 pb-4 pt-12 border-b border-border">
         <h1 className="font-heading text-2xl font-bold text-foreground">Entrate</h1>
-        <p className="text-sm text-muted-foreground">Color Fest 14 — Edizione 2025</p>
+        <p className="text-sm text-muted-foreground">Color Fest 14 — Edizione 2026</p>
       </div>
 
       <div className="mx-auto max-w-lg px-4 mt-4 space-y-3">
@@ -303,10 +316,8 @@ export default function EntratePage() {
           <StatCard label="Effettive" value={formatCurrency(totalWithDice.actual)} variant="success" />
         </div>
 
-        {/* DICE Live Tickets */}
         <DiceSection diceData={diceData} loading={diceLoading} error={diceError} onRefresh={fetchDice} />
 
-        {/* Manual categories */}
         {categories.map((cat, i) => {
           const catTot = getRevenueCategoryTotal(cat);
           return (
