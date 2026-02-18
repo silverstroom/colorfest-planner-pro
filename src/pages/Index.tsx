@@ -151,12 +151,12 @@ export default function Dashboard() {
           </Popover>
         </div>
 
-        {costs.toPay > 0 && (
+        {Math.abs(balance) > 0 && balance < 0 && (
           <div className="flex items-center gap-3 rounded-lg bg-secondary/30 p-3">
             <AlertCircle className="h-5 w-5 text-secondary-foreground" />
             <div>
-              <p className="text-sm font-semibold text-secondary-foreground">Da pagare</p>
-              <p className="text-xs text-muted-foreground">{formatCurrency(costs.toPay)} ancora da saldare</p>
+              <p className="text-sm font-semibold text-secondary-foreground">Da coprire</p>
+              <p className="text-xs text-muted-foreground">{formatCurrency(Math.abs(balance))} considerando le entrate attuali</p>
             </div>
           </div>
         )}
