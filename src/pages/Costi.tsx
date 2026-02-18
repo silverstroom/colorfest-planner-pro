@@ -5,12 +5,118 @@ import { formatCurrency } from "@/lib/format";
 import { StatCard } from "@/components/StatCard";
 import { Plus, Check, X, Pencil, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+
+function CostItemForm({
+  form,
+  setForm,
+  onSubmit,
+  onCancel,
+  submitLabel,
+  showConfirmed,
+}: {
+  form: { name: string; amount: string; paid: string; toPay: string; notes: string; confirmed: boolean };
+  setForm: React.Dispatch<React.SetStateAction<typeof form>>;
+  onSubmit: () => void;
+  onCancel: () => void;
+  submitLabel: string;
+  showConfirmed?: boolean;
+}) {
+  const amount = parseFloat(form.amount) || 0;
+  const paid = parseFloat(form.paid) || 0;
+  const autoToPay = Math.max(0, amount - paid);
+
+  return (
+    <div className="space-y-3 rounded-lg bg-muted/50 p-3">
+      <Input placeholder="Nome voce" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
+      <div className="grid grid-cols-3 gap-2">
+        <div>
+          <Label className="text-xs text-muted-foreground mb-1 block">Importo (€)</Label>
+          <Input placeholder="0" type="number" value={form.amount} onChange={(e) => setForm((f) => ({ ...f, amount: e.target.value }))} />
+        </div>
+        <div>
+          <Label className="text-xs text-muted-foreground mb-1 block">Pagato (€)</Label>
+          <Input placeholder="0" type="number" value={form.paid} onChange={(e) => setForm((f) => ({ ...f, paid: e.target.value }))} />
+        </div>
+        <div>
+          <Label className="text-xs text-muted-foreground mb-1 block">Da pagare (€)</Label>
+          <Input placeholder="auto" type="number" value={form.toPay || String(autoToPay)} onChange={(e) => setForm((f) => ({ ...f, toPay: e.target.value }))} />
+        </div>
+      </div>
+      <div>
+        <Label className="text-xs text-muted-foreground mb-1 block">Note / Dettagli</Label>
+        <Textarea placeholder="Dettagli pagamento, fornitori, riferimenti..." value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} rows={2} />
+      </div>
+      {showConfirmed && (
+        <div className="flex items-center gap-2">
+          <Switch checked={form.confirmed} onCheckedChange={(v) => setForm((f) => ({ ...f, confirmed: v }))} />
+          <Label className="text-sm">Confermato</Label>
+        </div>
+      )}
+      <div className="flex gap-2">
+        <button onClick={onSubmit} className="flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground">
+          <Check className="h-3 w-3" /> {submitLabel}
+        </button>
+        <button onClick={onCancel} className="flex items-center gap-1 rounded-md bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground">
+          <X className="h-3 w-3" /> Annulla
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function CostItemDetail({ item, onEdit, onDelete }: { item: CostItem; onEdit: () => void; onDelete: () => void }) {
+  return (
+    <div className="rounded-lg border border-border/50 bg-background/50 p-3 space-y-2">
+      <div className="flex items-start justify-between">
+        <div className="flex items-center gap-1.5">
+          <p className="font-semibold text-card-foreground">{item.name}</p>
+          {"confirmed" in item && item.confirmed && (
+            <span className="inline-flex items-center gap-0.5 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary">
+              <Check className="h-3 w-3" /> Confermato
+            </span>
+          )}
+        </div>
+        <div className="flex gap-1">
+          <button onClick={onEdit} className="rounded p-1 text-muted-foreground hover:text-foreground hover:bg-muted">
+            <Pencil className="h-3.5 w-3.5" />
+          </button>
+          <button onClick={onDelete} className="rounded p-1 text-muted-foreground hover:text-destructive hover:bg-muted">
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      </div>
+      <div className="grid grid-cols-3 gap-2 text-xs">
+        <div className="rounded bg-muted/60 p-2">
+          <p className="text-muted-foreground">Importo</p>
+          <p className="font-heading font-bold text-card-foreground">{formatCurrency(item.amount)}</p>
+        </div>
+        <div className="rounded bg-muted/60 p-2">
+          <p className="text-muted-foreground">Pagato</p>
+          <p className="font-heading font-bold text-primary">{formatCurrency(item.paid)}</p>
+        </div>
+        <div className="rounded bg-muted/60 p-2">
+          <p className="text-muted-foreground">Da pagare</p>
+          <p className={`font-heading font-bold ${item.toPay > 0 ? "text-accent" : "text-card-foreground"}`}>
+            {formatCurrency(item.toPay)}
+          </p>
+        </div>
+      </div>
+      {item.notes && (
+        <p className="text-xs text-muted-foreground bg-muted/40 rounded p-2 italic">{item.notes}</p>
+      )}
+    </div>
+  );
+}
 
 export default function CostiPage() {
   const [categories, setCategories] = useState<CostCategory[]>(defaultCostCategories);
   const [addingTo, setAddingTo] = useState<string | null>(null);
   const [editingItem, setEditingItem] = useState<string | null>(null);
-  const [form, setForm] = useState({ name: "", amount: "", paid: "", notes: "" });
+  const emptyForm = { name: "", amount: "", paid: "", toPay: "", notes: "", confirmed: false };
+  const [form, setForm] = useState(emptyForm);
 
   const totals = categories.reduce(
     (acc, cat) => {
@@ -21,22 +127,26 @@ export default function CostiPage() {
   );
 
   const resetForm = () => {
-    setForm({ name: "", amount: "", paid: "", notes: "" });
+    setForm(emptyForm);
     setAddingTo(null);
     setEditingItem(null);
   };
+
+  const isCachetCategory = (catId: string) => catId.startsWith("cachet");
 
   const handleAdd = (catId: string) => {
     if (!form.name) return;
     const amount = parseFloat(form.amount) || 0;
     const paid = parseFloat(form.paid) || 0;
+    const toPay = form.toPay ? parseFloat(form.toPay) : Math.max(0, amount - paid);
     const newItem: CostItem = {
       id: `new_${Date.now()}`,
       name: form.name,
       amount,
       paid,
-      toPay: Math.max(0, amount - paid),
+      toPay,
       notes: form.notes || undefined,
+      confirmed: isCachetCategory(catId) ? form.confirmed : undefined,
     };
     setCategories((prev) =>
       prev.map((c) => (c.id === catId ? { ...c, items: [...c.items, newItem] } : c))
@@ -48,6 +158,7 @@ export default function CostiPage() {
     if (!form.name) return;
     const amount = parseFloat(form.amount) || 0;
     const paid = parseFloat(form.paid) || 0;
+    const toPay = form.toPay ? parseFloat(form.toPay) : Math.max(0, amount - paid);
     setCategories((prev) =>
       prev.map((c) =>
         c.id === catId
@@ -55,7 +166,7 @@ export default function CostiPage() {
               ...c,
               items: c.items.map((item) =>
                 item.id === itemId
-                  ? { ...item, name: form.name, amount, paid, toPay: Math.max(0, amount - paid), notes: form.notes || undefined }
+                  ? { ...item, name: form.name, amount, paid, toPay, notes: form.notes || undefined, confirmed: isCachetCategory(catId) ? form.confirmed : item.confirmed }
                   : item
               ),
             }
@@ -74,7 +185,14 @@ export default function CostiPage() {
   const startEdit = (item: CostItem) => {
     setEditingItem(item.id);
     setAddingTo(null);
-    setForm({ name: item.name, amount: String(item.amount), paid: String(item.paid), notes: item.notes || "" });
+    setForm({
+      name: item.name,
+      amount: String(item.amount),
+      paid: String(item.paid),
+      toPay: String(item.toPay),
+      notes: item.notes || "",
+      confirmed: item.confirmed || false,
+    });
   };
 
   return (
@@ -101,86 +219,48 @@ export default function CostiPage() {
               total={formatCurrency(catTot.amount)}
               subtitle={
                 cat.items.length === 0
-                  ? "Nessuna voce"
+                  ? "Nessuna voce — aggiungi dati"
                   : catTot.toPay > 0
                   ? `Da pagare: ${formatCurrency(catTot.toPay)}`
                   : "Saldato"
               }
               className={`[animation-delay:${i * 50}ms]`}
             >
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {cat.items.map((item) => (
                   <div key={item.id}>
                     {editingItem === item.id ? (
-                      <div className="space-y-2 rounded-md bg-muted/50 p-2">
-                        <Input placeholder="Nome" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
-                        <div className="grid grid-cols-2 gap-2">
-                          <Input placeholder="Importo" type="number" value={form.amount} onChange={(e) => setForm((f) => ({ ...f, amount: e.target.value }))} />
-                          <Input placeholder="Pagato" type="number" value={form.paid} onChange={(e) => setForm((f) => ({ ...f, paid: e.target.value }))} />
-                        </div>
-                        <Input placeholder="Note (opzionale)" value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} />
-                        <div className="flex gap-2">
-                          <button onClick={() => handleEdit(cat.id, item.id)} className="flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground">
-                            <Check className="h-3 w-3" /> Salva
-                          </button>
-                          <button onClick={resetForm} className="flex items-center gap-1 rounded-md bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground">
-                            <X className="h-3 w-3" /> Annulla
-                          </button>
-                        </div>
-                      </div>
+                      <CostItemForm
+                        form={form}
+                        setForm={setForm as any}
+                        onSubmit={() => handleEdit(cat.id, item.id)}
+                        onCancel={resetForm}
+                        submitLabel="Salva"
+                        showConfirmed={isCachetCategory(cat.id)}
+                      />
                     ) : (
-                      <div className="flex items-center justify-between text-sm">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-1.5">
-                            <p className="font-medium text-card-foreground">{item.name}</p>
-                            {"confirmed" in item && item.confirmed && (
-                              <Check className="h-3.5 w-3.5 text-primary" />
-                            )}
-                          </div>
-                          {item.notes && <p className="text-xs text-muted-foreground">{item.notes}</p>}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="text-right">
-                            <p className="font-semibold text-card-foreground">{formatCurrency(item.amount)}</p>
-                            {item.toPay > 0 && (
-                              <p className="text-xs text-accent">Da pagare: {formatCurrency(item.toPay)}</p>
-                            )}
-                          </div>
-                          <div className="flex gap-1">
-                            <button onClick={() => startEdit(item)} className="rounded p-1 text-muted-foreground hover:text-foreground hover:bg-muted">
-                              <Pencil className="h-3.5 w-3.5" />
-                            </button>
-                            <button onClick={() => handleDelete(cat.id, item.id)} className="rounded p-1 text-muted-foreground hover:text-destructive hover:bg-muted">
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
+                      <CostItemDetail
+                        item={item}
+                        onEdit={() => startEdit(item)}
+                        onDelete={() => handleDelete(cat.id, item.id)}
+                      />
                     )}
                   </div>
                 ))}
 
                 {addingTo === cat.id ? (
-                  <div className="space-y-2 rounded-md bg-muted/50 p-2 mt-2">
-                    <Input placeholder="Nome voce" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
-                    <div className="grid grid-cols-2 gap-2">
-                      <Input placeholder="Importo" type="number" value={form.amount} onChange={(e) => setForm((f) => ({ ...f, amount: e.target.value }))} />
-                      <Input placeholder="Pagato" type="number" value={form.paid} onChange={(e) => setForm((f) => ({ ...f, paid: e.target.value }))} />
-                    </div>
-                    <Input placeholder="Note (opzionale)" value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} />
-                    <div className="flex gap-2">
-                      <button onClick={() => handleAdd(cat.id)} className="flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground">
-                        <Check className="h-3 w-3" /> Aggiungi
-                      </button>
-                      <button onClick={resetForm} className="flex items-center gap-1 rounded-md bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground">
-                        <X className="h-3 w-3" /> Annulla
-                      </button>
-                    </div>
-                  </div>
+                  <CostItemForm
+                    form={form}
+                    setForm={setForm as any}
+                    onSubmit={() => handleAdd(cat.id)}
+                    onCancel={resetForm}
+                    submitLabel="Aggiungi"
+                    showConfirmed={isCachetCategory(cat.id)}
+                  />
                 ) : (
                   <button
                     onClick={() => { resetForm(); setAddingTo(cat.id); }}
-                    className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-md border border-dashed border-border py-2 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
+                    className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-md border border-dashed border-border py-2.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
                   >
                     <Plus className="h-3.5 w-3.5" /> Aggiungi voce
                   </button>

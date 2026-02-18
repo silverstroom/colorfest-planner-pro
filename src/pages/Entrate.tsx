@@ -5,12 +5,88 @@ import { formatCurrency } from "@/lib/format";
 import { StatCard } from "@/components/StatCard";
 import { Plus, Check, X, Pencil, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+
+function RevenueItemForm({
+  form,
+  setForm,
+  onSubmit,
+  onCancel,
+  submitLabel,
+}: {
+  form: { name: string; estimated: string; actual: string; notes: string };
+  setForm: React.Dispatch<React.SetStateAction<typeof form>>;
+  onSubmit: () => void;
+  onCancel: () => void;
+  submitLabel: string;
+}) {
+  return (
+    <div className="space-y-3 rounded-lg bg-muted/50 p-3">
+      <Input placeholder="Nome voce" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
+      <div className="grid grid-cols-2 gap-2">
+        <div>
+          <Label className="text-xs text-muted-foreground mb-1 block">Stimato (€)</Label>
+          <Input placeholder="0" type="number" value={form.estimated} onChange={(e) => setForm((f) => ({ ...f, estimated: e.target.value }))} />
+        </div>
+        <div>
+          <Label className="text-xs text-muted-foreground mb-1 block">Effettivo (€)</Label>
+          <Input placeholder="0" type="number" value={form.actual} onChange={(e) => setForm((f) => ({ ...f, actual: e.target.value }))} />
+        </div>
+      </div>
+      <div>
+        <Label className="text-xs text-muted-foreground mb-1 block">Note / Dettagli</Label>
+        <Textarea placeholder="Dettagli incasso, riferimenti, stato..." value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} rows={2} />
+      </div>
+      <div className="flex gap-2">
+        <button onClick={onSubmit} className="flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground">
+          <Check className="h-3 w-3" /> {submitLabel}
+        </button>
+        <button onClick={onCancel} className="flex items-center gap-1 rounded-md bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground">
+          <X className="h-3 w-3" /> Annulla
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function RevenueItemDetail({ item, onEdit, onDelete }: { item: RevenueItem; onEdit: () => void; onDelete: () => void }) {
+  return (
+    <div className="rounded-lg border border-border/50 bg-background/50 p-3 space-y-2">
+      <div className="flex items-start justify-between">
+        <p className="font-semibold text-card-foreground">{item.name}</p>
+        <div className="flex gap-1">
+          <button onClick={onEdit} className="rounded p-1 text-muted-foreground hover:text-foreground hover:bg-muted">
+            <Pencil className="h-3.5 w-3.5" />
+          </button>
+          <button onClick={onDelete} className="rounded p-1 text-muted-foreground hover:text-destructive hover:bg-muted">
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-2 text-xs">
+        <div className="rounded bg-muted/60 p-2">
+          <p className="text-muted-foreground">Stimato</p>
+          <p className="font-heading font-bold text-card-foreground">{formatCurrency(item.estimated)}</p>
+        </div>
+        <div className="rounded bg-muted/60 p-2">
+          <p className="text-muted-foreground">Effettivo</p>
+          <p className="font-heading font-bold text-primary">{formatCurrency(item.actual)}</p>
+        </div>
+      </div>
+      {item.notes && (
+        <p className="text-xs text-muted-foreground bg-muted/40 rounded p-2 italic">{item.notes}</p>
+      )}
+    </div>
+  );
+}
 
 export default function EntratePage() {
   const [categories, setCategories] = useState<RevenueCategory[]>(defaultRevenueCategories);
   const [addingTo, setAddingTo] = useState<string | null>(null);
   const [editingItem, setEditingItem] = useState<string | null>(null);
-  const [form, setForm] = useState({ name: "", estimated: "", actual: "", notes: "" });
+  const emptyForm = { name: "", estimated: "", actual: "", notes: "" };
+  const [form, setForm] = useState(emptyForm);
 
   const totals = categories.reduce(
     (acc, cat) => {
@@ -21,7 +97,7 @@ export default function EntratePage() {
   );
 
   const resetForm = () => {
-    setForm({ name: "", estimated: "", actual: "", notes: "" });
+    setForm(emptyForm);
     setAddingTo(null);
     setEditingItem(null);
   };
@@ -93,75 +169,42 @@ export default function EntratePage() {
               icon={cat.icon}
               label={cat.label}
               total={formatCurrency(catTot.actual)}
-              subtitle={cat.items.length === 0 ? "Nessuna voce" : `Stimato: ${formatCurrency(catTot.estimated)}`}
+              subtitle={cat.items.length === 0 ? "Nessuna voce — aggiungi dati" : `Stimato: ${formatCurrency(catTot.estimated)}`}
               className={`[animation-delay:${i * 50}ms]`}
             >
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {cat.items.map((item) => (
                   <div key={item.id}>
                     {editingItem === item.id ? (
-                      <div className="space-y-2 rounded-md bg-muted/50 p-2">
-                        <Input placeholder="Nome" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
-                        <div className="grid grid-cols-2 gap-2">
-                          <Input placeholder="Stimato" type="number" value={form.estimated} onChange={(e) => setForm((f) => ({ ...f, estimated: e.target.value }))} />
-                          <Input placeholder="Effettivo" type="number" value={form.actual} onChange={(e) => setForm((f) => ({ ...f, actual: e.target.value }))} />
-                        </div>
-                        <Input placeholder="Note (opzionale)" value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} />
-                        <div className="flex gap-2">
-                          <button onClick={() => handleEdit(cat.id, item.id)} className="flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground">
-                            <Check className="h-3 w-3" /> Salva
-                          </button>
-                          <button onClick={resetForm} className="flex items-center gap-1 rounded-md bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground">
-                            <X className="h-3 w-3" /> Annulla
-                          </button>
-                        </div>
-                      </div>
+                      <RevenueItemForm
+                        form={form}
+                        setForm={setForm as any}
+                        onSubmit={() => handleEdit(cat.id, item.id)}
+                        onCancel={resetForm}
+                        submitLabel="Salva"
+                      />
                     ) : (
-                      <div className="flex items-center justify-between text-sm">
-                        <div className="flex-1">
-                          <p className="font-medium text-card-foreground">{item.name}</p>
-                          {item.notes && <p className="text-xs text-muted-foreground">{item.notes}</p>}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="text-right">
-                            <p className="font-semibold text-card-foreground">{formatCurrency(item.actual)}</p>
-                            <p className="text-xs text-muted-foreground">Stima: {formatCurrency(item.estimated)}</p>
-                          </div>
-                          <div className="flex gap-1">
-                            <button onClick={() => startEdit(item)} className="rounded p-1 text-muted-foreground hover:text-foreground hover:bg-muted">
-                              <Pencil className="h-3.5 w-3.5" />
-                            </button>
-                            <button onClick={() => handleDelete(cat.id, item.id)} className="rounded p-1 text-muted-foreground hover:text-destructive hover:bg-muted">
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
+                      <RevenueItemDetail
+                        item={item}
+                        onEdit={() => startEdit(item)}
+                        onDelete={() => handleDelete(cat.id, item.id)}
+                      />
                     )}
                   </div>
                 ))}
 
                 {addingTo === cat.id ? (
-                  <div className="space-y-2 rounded-md bg-muted/50 p-2 mt-2">
-                    <Input placeholder="Nome voce" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
-                    <div className="grid grid-cols-2 gap-2">
-                      <Input placeholder="Stimato" type="number" value={form.estimated} onChange={(e) => setForm((f) => ({ ...f, estimated: e.target.value }))} />
-                      <Input placeholder="Effettivo" type="number" value={form.actual} onChange={(e) => setForm((f) => ({ ...f, actual: e.target.value }))} />
-                    </div>
-                    <Input placeholder="Note (opzionale)" value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} />
-                    <div className="flex gap-2">
-                      <button onClick={() => handleAdd(cat.id)} className="flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground">
-                        <Check className="h-3 w-3" /> Aggiungi
-                      </button>
-                      <button onClick={resetForm} className="flex items-center gap-1 rounded-md bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground">
-                        <X className="h-3 w-3" /> Annulla
-                      </button>
-                    </div>
-                  </div>
+                  <RevenueItemForm
+                    form={form}
+                    setForm={setForm as any}
+                    onSubmit={() => handleAdd(cat.id)}
+                    onCancel={resetForm}
+                    submitLabel="Aggiungi"
+                  />
                 ) : (
                   <button
                     onClick={() => { resetForm(); setAddingTo(cat.id); }}
-                    className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-md border border-dashed border-border py-2 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
+                    className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-md border border-dashed border-border py-2.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
                   >
                     <Plus className="h-3.5 w-3.5" /> Aggiungi voce
                   </button>
