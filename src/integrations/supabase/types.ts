@@ -17,6 +17,8 @@ export type Database = {
       cost_items: {
         Row: {
           amount: number
+          anticipo_importo: number
+          anticipo_persona: string | null
           category_id: string
           confirmed: boolean
           created_at: string
@@ -31,6 +33,8 @@ export type Database = {
         }
         Insert: {
           amount?: number
+          anticipo_importo?: number
+          anticipo_persona?: string | null
           category_id: string
           confirmed?: boolean
           created_at?: string
@@ -45,6 +49,8 @@ export type Database = {
         }
         Update: {
           amount?: number
+          anticipo_importo?: number
+          anticipo_persona?: string | null
           category_id?: string
           confirmed?: boolean
           created_at?: string
