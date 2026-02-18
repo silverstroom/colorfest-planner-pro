@@ -19,15 +19,15 @@ export function StatCard({ label, value, sublabel, variant = "default", classNam
   return (
     <div
       className={cn(
-        "rounded-lg p-4 shadow-sm animate-fade-in",
+        "rounded-lg p-3 shadow-sm animate-fade-in overflow-hidden",
         variantClasses[variant],
         className
       )}
     >
-      <p className={cn("text-xs font-medium uppercase tracking-wide", variant === "default" ? "text-muted-foreground" : "opacity-80")}>
+      <p className={cn("text-[10px] font-medium uppercase tracking-wide", variant === "default" ? "text-muted-foreground" : "opacity-80")}>
         {label}
       </p>
-      <p className="mt-1 font-heading text-2xl font-bold">{value}</p>
+      <p className="mt-1 font-heading text-lg sm:text-2xl font-bold truncate">{value}</p>
       {sublabel && (
         <p className={cn("mt-0.5 text-xs", variant === "default" ? "text-muted-foreground" : "opacity-70")}>
           {sublabel}
