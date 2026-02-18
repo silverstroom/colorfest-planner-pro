@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import { StatCard } from "@/components/StatCard";
 import { formatCurrency } from "@/lib/format";
 import { getCategoryTotal } from "@/data/businessPlan";
-import { AlertCircle, HandCoins } from "lucide-react";
+import { AlertCircle, HandCoins, Info } from "lucide-react";
 import { useCostCategories, useRevenueCategories } from "@/hooks/useBusinessData";
 import { supabase } from "@/integrations/supabase/client";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 export default function Dashboard() {
   const { categories: costCategories, loading: loadingCosts } = useCostCategories();
@@ -95,11 +96,52 @@ export default function Dashboard() {
           <StatCard label="Entrate Totali" value={formatCurrency(totalRevenue)} sublabel={diceRevenue > 0 ? `Di cui DICE: ${formatCurrency(diceRevenue)}` : `Stimate: ${formatCurrency(revenue.estimated)}`} />
         </div>
 
-        <StatCard
-          label="Bilancio Attuale"
-          value={formatCurrency(balance)}
-          sublabel={balance >= 0 ? "In positivo" : "In negativo"}
-          variant={balance >= 0 ? "success" : "accent"} />
+        <div className="relative">
+          <StatCard
+            label="Bilancio Attuale"
+            value={formatCurrency(balance)}
+            sublabel={balance >= 0 ? "In positivo" : "In negativo"}
+            variant={balance >= 0 ? "success" : "accent"} />
+          <Popover>
+            <PopoverTrigger asChild>
+              <button className="absolute top-3 right-3 rounded-full p-1 text-primary-foreground/70 hover:text-primary-foreground hover:bg-white/10 transition-colors">
+                <Info className="h-4 w-4" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-72 p-3 space-y-2 text-sm" side="bottom" align="end">
+              <p className="font-heading font-bold text-foreground">Come si calcola</p>
+              <div className="space-y-1.5 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Entrate totali</span>
+                  <span className="font-semibold text-foreground">{formatCurrency(totalRevenue)}</span>
+                </div>
+                {revenue.actual > 0 && (
+                  <div className="flex justify-between pl-3">
+                    <span className="text-muted-foreground">Manuali</span>
+                    <span className="text-foreground">{formatCurrency(revenue.actual)}</span>
+                  </div>
+                )}
+                {diceRevenue > 0 && (
+                  <div className="flex justify-between pl-3">
+                    <span className="text-muted-foreground">Biglietti DICE</span>
+                    <span className="text-foreground">{formatCurrency(diceRevenue)}</span>
+                  </div>
+                )}
+                <div className="border-t border-border my-1" />
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Costi pagati</span>
+                  <span className="font-semibold text-destructive">- {formatCurrency(costs.paid)}</span>
+                </div>
+                <div className="border-t border-border my-1" />
+                <div className="flex justify-between font-heading font-bold">
+                  <span>Bilancio</span>
+                  <span className={balance >= 0 ? "text-primary" : "text-destructive"}>{formatCurrency(balance)}</span>
+                </div>
+              </div>
+              <p className="text-[10px] text-muted-foreground mt-1">Entrate effettive − Costi già pagati</p>
+            </PopoverContent>
+          </Popover>
+        </div>
 
         {costs.toPay > 0 && (
           <div className="flex items-center gap-3 rounded-lg bg-secondary/30 p-3">
