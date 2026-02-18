@@ -17,10 +17,12 @@ export default function StatistichePage() {
   const costs = getTotalCosts();
   const revenue = getTotalRevenue();
 
-  const costData = costCategories.map((c) => ({
-    name: c.label.split(" ")[0],
-    value: getCategoryTotal(c).amount,
-  }));
+  const costData = costCategories
+    .map((c) => ({
+      name: c.label,
+      value: getCategoryTotal(c).amount,
+    }))
+    .filter((d) => d.value > 0);
 
   const revenueData = revenueCategories.map((c) => ({
     name: c.label,
@@ -62,9 +64,9 @@ export default function StatistichePage() {
         {/* Pie - Costs */}
         <div className="rounded-lg bg-card p-4 shadow-sm">
           <h3 className="mb-3 font-heading text-sm font-bold text-card-foreground">Distribuzione Costi</h3>
-          <ResponsiveContainer width="100%" height={220}>
+          <ResponsiveContainer width="100%" height={200}>
             <PieChart>
-              <Pie data={costData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
+              <Pie data={costData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label={false}>
                 {costData.map((_, i) => (
                   <Cell key={i} fill={COLORS[i % COLORS.length]} />
                 ))}
@@ -72,6 +74,18 @@ export default function StatistichePage() {
               <Tooltip formatter={(v: number) => formatCurrency(v)} />
             </PieChart>
           </ResponsiveContainer>
+          <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2">
+            {costData.map((d, i) => {
+              const total = costData.reduce((a, b) => a + b.value, 0);
+              const pct = total > 0 ? Math.round((d.value / total) * 100) : 0;
+              return (
+                <div key={d.name} className="flex items-center gap-1.5 text-xs text-card-foreground">
+                  <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
+                  <span>{d.name} {pct}%</span>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         {/* Bar - Revenue */}
