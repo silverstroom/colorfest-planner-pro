@@ -3,7 +3,7 @@ import { CategoryCard } from "@/components/CategoryCard";
 import { defaultRevenueCategories, getRevenueCategoryTotal, type RevenueCategory, type RevenueItem } from "@/data/businessPlan";
 import { formatCurrency } from "@/lib/format";
 import { StatCard } from "@/components/StatCard";
-import { Plus, Check, X, Pencil, Trash2, RefreshCw, Ticket, ExternalLink } from "lucide-react";
+import { Plus, Check, X, Pencil, Trash2, RefreshCw, Ticket, ExternalLink, ChevronUp, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -138,70 +138,85 @@ function DiceSection({ diceData, loading, error, onRefresh }: {
 
   if (!diceData) return null;
 
+  const [expanded, setExpanded] = useState(false);
+
   return (
-    <div className="space-y-3">
-      {/* DICE Summary */}
-      <div className="rounded-lg bg-card shadow-sm p-4">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <Ticket className="h-5 w-5 text-primary" />
-            <span className="font-heading font-semibold text-card-foreground">Biglietti DICE — Live</span>
+    <div className="rounded-lg bg-card shadow-sm overflow-hidden">
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="flex w-full items-center justify-between p-4 text-left"
+      >
+        <div className="flex items-center gap-2">
+          <Ticket className="h-5 w-5 text-primary" />
+          <div>
+            <p className="font-heading font-semibold text-card-foreground">Biglietti DICE — Live</p>
+            <p className="text-xs text-muted-foreground">{diceData.totals.totalSold} venduti • {formatCurrency(diceData.totals.totalRevenue)}</p>
           </div>
-          <button onClick={onRefresh} className="rounded p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={(e) => { e.stopPropagation(); onRefresh(); }}
+            className="rounded p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+          >
             <RefreshCw className="h-4 w-4" />
           </button>
+          {expanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
         </div>
-        <div className="grid grid-cols-3 gap-2 text-xs mb-3">
-          <div className="rounded bg-muted/60 p-2 text-center">
-            <p className="text-muted-foreground">Venduti</p>
-            <p className="font-heading text-lg font-bold text-primary">{diceData.totals.totalSold}</p>
-          </div>
-          <div className="rounded bg-muted/60 p-2 text-center">
-            <p className="text-muted-foreground">Allocazione</p>
-            <p className="font-heading text-lg font-bold text-card-foreground">{diceData.totals.totalAllocation.toLocaleString()}</p>
-          </div>
-          <div className="rounded bg-muted/60 p-2 text-center">
-            <p className="text-muted-foreground">Incasso</p>
-            <p className="font-heading text-lg font-bold text-primary">{formatCurrency(diceData.totals.totalRevenue)}</p>
-          </div>
-        </div>
-      </div>
+      </button>
 
-      {/* Per-event breakdown */}
-      {diceData.events.map((event) => (
-        <div key={event.id} className="rounded-lg border border-border/50 bg-background/50 p-3 space-y-2">
-          <div className="flex items-start justify-between">
-            <p className="font-semibold text-sm text-card-foreground">{event.name}</p>
-            <a href={event.url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary">
-              <ExternalLink className="h-3.5 w-3.5" />
-            </a>
-          </div>
+      {expanded && (
+        <div className="border-t border-border px-4 pb-4 pt-3 space-y-3">
           <div className="grid grid-cols-3 gap-2 text-xs">
-            <div className="rounded bg-muted/60 p-2">
+            <div className="rounded bg-muted/60 p-2 text-center">
               <p className="text-muted-foreground">Venduti</p>
-              <p className="font-heading font-bold text-card-foreground">{event.totalSold}</p>
+              <p className="font-heading text-lg font-bold text-primary">{diceData.totals.totalSold}</p>
             </div>
-            <div className="rounded bg-muted/60 p-2">
+            <div className="rounded bg-muted/60 p-2 text-center">
               <p className="text-muted-foreground">Allocazione</p>
-              <p className="font-heading font-bold text-card-foreground">{event.totalAllocation.toLocaleString()}</p>
+              <p className="font-heading text-lg font-bold text-card-foreground">{diceData.totals.totalAllocation.toLocaleString()}</p>
             </div>
-            <div className="rounded bg-muted/60 p-2">
+            <div className="rounded bg-muted/60 p-2 text-center">
               <p className="text-muted-foreground">Incasso</p>
-              <p className="font-heading font-bold text-primary">{formatCurrency(event.totalRevenue)}</p>
+              <p className="font-heading text-lg font-bold text-primary">{formatCurrency(diceData.totals.totalRevenue)}</p>
             </div>
           </div>
-          {event.ticketTypes.length > 0 && (
-            <div className="space-y-1">
-              {event.ticketTypes.map((tt, idx) => (
-                <div key={idx} className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>{tt.name}</span>
-                  <span>{tt.count} × {formatCurrency(tt.price)} = {formatCurrency(tt.revenue)}</span>
+
+          {diceData.events.map((event) => (
+            <div key={event.id} className="rounded-lg border border-border/50 bg-background/50 p-3 space-y-2">
+              <div className="flex items-start justify-between">
+                <p className="font-semibold text-sm text-card-foreground">{event.name}</p>
+                <a href={event.url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary">
+                  <ExternalLink className="h-3.5 w-3.5" />
+                </a>
+              </div>
+              <div className="grid grid-cols-3 gap-2 text-xs">
+                <div className="rounded bg-muted/60 p-2">
+                  <p className="text-muted-foreground">Venduti</p>
+                  <p className="font-heading font-bold text-card-foreground">{event.totalSold}</p>
                 </div>
-              ))}
+                <div className="rounded bg-muted/60 p-2">
+                  <p className="text-muted-foreground">Allocazione</p>
+                  <p className="font-heading font-bold text-card-foreground">{event.totalAllocation.toLocaleString()}</p>
+                </div>
+                <div className="rounded bg-muted/60 p-2">
+                  <p className="text-muted-foreground">Incasso</p>
+                  <p className="font-heading font-bold text-primary">{formatCurrency(event.totalRevenue)}</p>
+                </div>
+              </div>
+              {event.ticketTypes.length > 0 && (
+                <div className="space-y-1">
+                  {event.ticketTypes.map((tt, idx) => (
+                    <div key={idx} className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span>{tt.name}</span>
+                      <span>{tt.count} × {formatCurrency(tt.price)} = {formatCurrency(tt.revenue)}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-          )}
+          ))}
         </div>
-      ))}
+      )}
     </div>
   );
 }
