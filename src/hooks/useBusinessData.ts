@@ -82,6 +82,7 @@ export function useCostCategories() {
       sort_order: nextOrder,
       anticipo_persona: item.anticipoPersona || null,
       anticipo_importo: item.anticipoImporto || 0,
+      iva_rate: item.ivaRate ?? 10,
     }).select().single();
     if (!error && data) {
       await fetchData();
