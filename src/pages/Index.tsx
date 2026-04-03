@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { StatCard } from "@/components/StatCard";
 import { formatCurrency } from "@/lib/format";
-import { getCategoryTotal } from "@/data/businessPlan";
+import { getCategoryTotalWithIva } from "@/data/businessPlan";
 import { HandCoins, Info } from "lucide-react";
 import { useCostCategories, useRevenueCategories } from "@/hooks/useBusinessData";
 import { supabase } from "@/integrations/supabase/client";
