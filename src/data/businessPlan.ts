@@ -9,6 +9,27 @@ export interface CostItem {
   date?: string;
   anticipoPersona?: string;
   anticipoImporto?: number;
+  ivaRate?: number; // percentage, default 10
+}
+
+// Calculate amount with IVA
+export function withIva(amount: number, ivaRate: number = 10): number {
+  return amount * (1 + ivaRate / 100);
+}
+
+// Get category total with IVA applied
+export function getCategoryTotalWithIva(cat: CostCategory): { amount: number; paid: number; toPay: number } {
+  return cat.items.reduce(
+    (a, item) => {
+      const iva = item.ivaRate ?? 10;
+      return {
+        amount: a.amount + withIva(item.amount, iva),
+        paid: a.paid + withIva(item.paid, iva),
+        toPay: a.toPay + withIva(item.toPay, iva),
+      };
+    },
+    { amount: 0, paid: 0, toPay: 0 }
+  );
 }
 
 export interface CostCategory {
