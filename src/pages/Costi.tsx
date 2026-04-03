@@ -144,7 +144,7 @@ export default function CostiPage() {
   const { categories, loading, addItem, updateItem, deleteItem, moveItem } = useCostCategories();
   const [addingTo, setAddingTo] = useState<string | null>(null);
   const [editingItem, setEditingItem] = useState<string | null>(null);
-  const emptyForm = { name: "", amount: "", paid: "", toPay: "", notes: "", confirmed: false, anticipoPersona: "", anticipoImporto: "" };
+  const emptyForm = { name: "", amount: "", paid: "", toPay: "", notes: "", confirmed: false, anticipoPersona: "", anticipoImporto: "", ivaRate: "10" };
   const [form, setForm] = useState(emptyForm);
 
   const totals = categories.reduce(
