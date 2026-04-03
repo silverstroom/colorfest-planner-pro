@@ -191,6 +191,7 @@ export default function CostiPage() {
       confirmed: isCachetCategory(catId) ? form.confirmed : undefined,
       anticipoPersona: form.anticipoPersona || undefined,
       anticipoImporto: parseFloat(form.anticipoImporto) || undefined,
+      ivaRate: parseFloat(form.ivaRate) || 0,
     });
     resetForm();
   };
