@@ -212,6 +212,7 @@ export default function CostiPage() {
       confirmed: item.confirmed || false,
       anticipoPersona: item.anticipoPersona || "",
       anticipoImporto: item.anticipoImporto ? String(item.anticipoImporto) : "",
+      ivaRate: String(item.ivaRate ?? 10),
     });
   };
 
