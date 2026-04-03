@@ -245,7 +245,7 @@ export default function CostiPage() {
         </div>
 
         {categories.map((cat, i) => {
-          const catTot = getCategoryTotal(cat);
+          const catTot = getCategoryTotalWithIva(cat);
           return (
             <CategoryCard
               key={cat.id}
