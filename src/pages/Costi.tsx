@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { CategoryCard } from "@/components/CategoryCard";
-import { getCategoryTotal, type CostItem } from "@/data/businessPlan";
+import { getCategoryTotalWithIva, withIva, type CostItem } from "@/data/businessPlan";
 import { formatCurrency } from "@/lib/format";
 import { StatCard } from "@/components/StatCard";
 import { Plus, Check, X, Pencil, Trash2, ChevronUp, ChevronDown, HandCoins } from "lucide-react";
