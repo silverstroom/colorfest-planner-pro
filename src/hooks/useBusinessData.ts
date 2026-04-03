@@ -131,6 +131,7 @@ export function useCostCategories() {
     if (item.date !== undefined) updates.date = item.date;
     if (item.anticipoPersona !== undefined) updates.anticipo_persona = item.anticipoPersona || null;
     if (item.anticipoImporto !== undefined) updates.anticipo_importo = item.anticipoImporto || 0;
+    if (item.ivaRate !== undefined) updates.iva_rate = item.ivaRate;
 
     const { error } = await supabase.from("cost_items").update(updates).eq("id", itemId);
     if (!error) await fetchData();
