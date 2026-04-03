@@ -112,17 +112,18 @@ function CostItemDetail({ item, onEdit, onDelete, onMoveUp, onMoveDown, isFirst,
       </div>
       <div className="grid grid-cols-3 gap-2 text-xs">
         <div className="rounded bg-muted/60 p-2">
-          <p className="text-muted-foreground">Importo</p>
-          <p className="font-heading font-bold text-card-foreground">{formatCurrency(item.amount)}</p>
+          <p className="text-muted-foreground">Importo {item.ivaRate ? `+IVA ${item.ivaRate}%` : ""}</p>
+          <p className="font-heading font-bold text-card-foreground">{formatCurrency(withIva(item.amount, item.ivaRate ?? 10))}</p>
+          {(item.ivaRate ?? 10) > 0 && <p className="text-[10px] text-muted-foreground">Netto: {formatCurrency(item.amount)}</p>}
         </div>
         <div className="rounded bg-muted/60 p-2">
           <p className="text-muted-foreground">Pagato</p>
-          <p className="font-heading font-bold text-primary">{formatCurrency(item.paid)}</p>
+          <p className="font-heading font-bold text-primary">{formatCurrency(withIva(item.paid, item.ivaRate ?? 10))}</p>
         </div>
         <div className="rounded bg-muted/60 p-2">
           <p className="text-muted-foreground">Da pagare</p>
           <p className={`font-heading font-bold ${item.toPay > 0 ? "text-accent" : "text-card-foreground"}`}>
-            {formatCurrency(item.toPay)}
+            {formatCurrency(withIva(item.toPay, item.ivaRate ?? 10))}
           </p>
         </div>
       </div>
