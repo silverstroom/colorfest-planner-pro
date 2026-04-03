@@ -51,7 +51,10 @@ function CostItemForm({
           <Label className="text-sm">Confermato</Label>
         </div>
       )}
-      <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 space-y-2">
+      <div className="flex items-center gap-2 mt-1">
+        <Switch checked={parseFloat(form.ivaRate) > 0} onCheckedChange={(v) => setForm((f) => ({ ...f, ivaRate: v ? "10" : "0" }))} />
+        <Label className="text-sm">IVA {parseFloat(form.ivaRate) > 0 ? `${form.ivaRate}%` : "esclusa"}</Label>
+      </div>
         <Label className="text-xs font-semibold text-primary flex items-center gap-1"><HandCoins className="h-3 w-3" /> Anticipo</Label>
         <div className="grid grid-cols-2 gap-2">
           <div>
