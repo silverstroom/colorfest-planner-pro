@@ -13,7 +13,7 @@ import { useCostCategories } from "@/hooks/useBusinessData";
 function CostItemForm({
   form, setForm, onSubmit, onCancel, submitLabel, showConfirmed,
 }: {
-  form: { name: string; amount: string; paid: string; toPay: string; notes: string; confirmed: boolean; anticipoPersona: string; anticipoImporto: string };
+  form: { name: string; amount: string; paid: string; toPay: string; notes: string; confirmed: boolean; anticipoPersona: string; anticipoImporto: string; ivaRate: string };
   setForm: React.Dispatch<React.SetStateAction<typeof form>>;
   onSubmit: () => void;
   onCancel: () => void;
