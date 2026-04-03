@@ -51,7 +51,8 @@ export default function Dashboard() {
   );
 
   const totalRevenue = revenue.actual + diceRevenue;
-  const balance = totalRevenue - costs.amount;
+  // Balance = revenue + what's already paid - total costs = revenue - remaining to pay
+  const balance = totalRevenue - costs.toPay;
 
   const topCostCategories = costCategories
     .map((c) => ({ label: c.label, icon: c.icon, total: getCategoryTotal(c).amount }))
