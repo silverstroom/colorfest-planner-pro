@@ -37,7 +37,7 @@ export default function Dashboard() {
 
   const costs = costCategories.reduce(
     (acc, cat) => {
-      const t = getCategoryTotal(cat);
+      const t = getCategoryTotalWithIva(cat);
       return { amount: acc.amount + t.amount, paid: acc.paid + t.paid, toPay: acc.toPay + t.toPay };
     },
     { amount: 0, paid: 0, toPay: 0 }
