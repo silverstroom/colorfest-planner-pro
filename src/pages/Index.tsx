@@ -147,7 +147,7 @@ export default function Dashboard() {
                   <span className={balance >= 0 ? "text-primary" : "text-destructive"}>{formatCurrency(balance)}</span>
                 </div>
               </div>
-              <p className="text-[10px] text-muted-foreground mt-1">Entrate effettive − Costi totali</p>
+              <p className="text-[10px] text-muted-foreground mt-1">Entrate effettive − Costi ancora da pagare</p>
             </PopoverContent>
           </Popover>
         </div>
