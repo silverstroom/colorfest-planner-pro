@@ -123,8 +123,8 @@ function CostItemDetail({ item, onEdit, onDelete, onMoveUp, onMoveDown, isFirst,
         </div>
         <div className="rounded bg-muted/60 p-2">
           <p className="text-muted-foreground">Da pagare</p>
-          <p className={`font-heading font-bold ${item.toPay > 0 ? "text-accent" : "text-card-foreground"}`}>
-            {formatCurrency(withIva(item.toPay, item.ivaRate ?? 10))}
+          <p className={`font-heading font-bold ${(item.amount - item.paid) > 0 ? "text-accent" : "text-card-foreground"}`}>
+            {formatCurrency(withIva(Math.max(0, item.amount - item.paid), item.ivaRate ?? 10))}
           </p>
         </div>
       </div>

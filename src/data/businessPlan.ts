@@ -22,10 +22,11 @@ export function getCategoryTotalWithIva(cat: CostCategory): { amount: number; pa
   return cat.items.reduce(
     (a, item) => {
       const iva = item.ivaRate ?? 10;
+      const realToPay = Math.max(0, item.amount - item.paid);
       return {
         amount: a.amount + withIva(item.amount, iva),
         paid: a.paid + withIva(item.paid, iva),
-        toPay: a.toPay + withIva(item.toPay, iva),
+        toPay: a.toPay + withIva(realToPay, iva),
       };
     },
     { amount: 0, paid: 0, toPay: 0 }
