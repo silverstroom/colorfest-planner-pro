@@ -55,7 +55,7 @@ export default function Dashboard() {
   const balance = totalRevenue - costs.toPay;
 
   const topCostCategories = costCategories
-    .map((c) => ({ label: c.label, icon: c.icon, total: getCategoryTotal(c).amount }))
+    .map((c) => ({ label: c.label, icon: c.icon, total: getCategoryTotalWithIva(c).amount }))
     .filter((c) => c.total > 0);
 
   // Collect all anticipi across all categories
