@@ -19,6 +19,7 @@ function mapCostRows(rows: any[]): CostCategory[] {
         date: row.date || undefined,
         anticipoPersona: row.anticipo_persona || undefined,
         anticipoImporto: Number(row.anticipo_importo) || undefined,
+        ivaRate: row.iva_rate !== undefined ? Number(row.iva_rate) : 10,
       });
     }
   }
