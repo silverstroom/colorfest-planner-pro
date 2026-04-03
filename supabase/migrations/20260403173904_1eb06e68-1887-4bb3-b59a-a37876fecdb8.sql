@@ -1,0 +1,1 @@
+ALTER TABLE public.cost_items ADD COLUMN iva_rate numeric NOT NULL DEFAULT 10;

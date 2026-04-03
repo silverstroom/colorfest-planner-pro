@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { StatCard } from "@/components/StatCard";
 import { formatCurrency } from "@/lib/format";
-import { getCategoryTotal } from "@/data/businessPlan";
+import { getCategoryTotalWithIva } from "@/data/businessPlan";
 import { HandCoins, Info } from "lucide-react";
 import { useCostCategories, useRevenueCategories } from "@/hooks/useBusinessData";
 import { supabase } from "@/integrations/supabase/client";
@@ -37,7 +37,7 @@ export default function Dashboard() {
 
   const costs = costCategories.reduce(
     (acc, cat) => {
-      const t = getCategoryTotal(cat);
+      const t = getCategoryTotalWithIva(cat);
       return { amount: acc.amount + t.amount, paid: acc.paid + t.paid, toPay: acc.toPay + t.toPay };
     },
     { amount: 0, paid: 0, toPay: 0 }
@@ -51,10 +51,11 @@ export default function Dashboard() {
   );
 
   const totalRevenue = revenue.actual + diceRevenue;
-  const balance = totalRevenue - costs.amount;
+  // Balance = revenue + what's already paid - total costs = revenue - remaining to pay
+  const balance = totalRevenue - costs.toPay;
 
   const topCostCategories = costCategories
-    .map((c) => ({ label: c.label, icon: c.icon, total: getCategoryTotal(c).amount }))
+    .map((c) => ({ label: c.label, icon: c.icon, total: getCategoryTotalWithIva(c).amount }))
     .filter((c) => c.total > 0);
 
   // Collect all anticipi across all categories
@@ -146,7 +147,7 @@ export default function Dashboard() {
                   <span className={balance >= 0 ? "text-primary" : "text-destructive"}>{formatCurrency(balance)}</span>
                 </div>
               </div>
-              <p className="text-[10px] text-muted-foreground mt-1">Entrate effettive − Costi totali</p>
+              <p className="text-[10px] text-muted-foreground mt-1">Entrate effettive − Costi ancora da pagare</p>
             </PopoverContent>
           </Popover>
         </div>

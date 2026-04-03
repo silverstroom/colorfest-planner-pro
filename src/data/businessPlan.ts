@@ -9,6 +9,27 @@ export interface CostItem {
   date?: string;
   anticipoPersona?: string;
   anticipoImporto?: number;
+  ivaRate?: number; // percentage, default 10
+}
+
+// Calculate amount with IVA
+export function withIva(amount: number, ivaRate: number = 10): number {
+  return amount * (1 + ivaRate / 100);
+}
+
+// Get category total with IVA applied
+export function getCategoryTotalWithIva(cat: CostCategory): { amount: number; paid: number; toPay: number } {
+  return cat.items.reduce(
+    (a, item) => {
+      const iva = item.ivaRate ?? 10;
+      return {
+        amount: a.amount + withIva(item.amount, iva),
+        paid: a.paid + withIva(item.paid, iva),
+        toPay: a.toPay + withIva(item.toPay, iva),
+      };
+    },
+    { amount: 0, paid: 0, toPay: 0 }
+  );
 }
 
 export interface CostCategory {
@@ -45,7 +66,8 @@ export const defaultCostCategories: CostCategory[] = [
       { id: "c3", name: "Gaia Banfi", amount: 1300, paid: 0, toPay: 1300, confirmed: true, date: "11 agosto" },
       { id: "c4", name: "Prima Stanza a Destra", amount: 5000, paid: 0, toPay: 5000, confirmed: true, date: "11 agosto" },
       { id: "c5", name: "James Holden + Zimpel", amount: 5500, paid: 0, toPay: 5500, confirmed: true, date: "11 agosto" },
-      { id: "c6", name: "Marley", amount: 0, paid: 0, toPay: 0, confirmed: false, date: "11 agosto", notes: "Da definire" },
+      { id: "c6", name: "Marley", amount: 500, paid: 0, toPay: 500, confirmed: true, date: "11 agosto" },
+      { id: "c6b", name: "La Badessa", amount: 4500, paid: 0, toPay: 4500, confirmed: true, date: "11 agosto" },
     ],
   },
   {
@@ -54,10 +76,12 @@ export const defaultCostCategories: CostCategory[] = [
     icon: "🎤",
     items: [
       { id: "c7", name: "Zen Circus", amount: 15000, paid: 0, toPay: 15000, confirmed: true, date: "12 agosto", notes: "Fino a 1500 spettatori" },
+      { id: "c7b", name: "Sebastian Tellier", amount: 25000, paid: 0, toPay: 25000, confirmed: true, date: "12 agosto" },
+      { id: "c13", name: "Populous", amount: 2000, paid: 0, toPay: 2000, confirmed: true, date: "12 agosto" },
       { id: "c8", name: "Yin Yin", amount: 6000, paid: 0, toPay: 6000, confirmed: true, date: "12 agosto" },
       { id: "c9", name: "Tutti Fenomeni", amount: 9000, paid: 0, toPay: 9000, confirmed: true, date: "12 agosto" },
-      { id: "c10", name: "Nico Arezzo + Anna Castiglia", amount: 2000, paid: 0, toPay: 2000, confirmed: true, date: "12 agosto" },
-      { id: "c11", name: "Marley", amount: 0, paid: 0, toPay: 0, confirmed: false, date: "12 agosto", notes: "Da definire" },
+      { id: "c10", name: "Nico Arezzo + Anna Castiglia", amount: 2500, paid: 0, toPay: 2500, confirmed: true, date: "12 agosto" },
+      { id: "c11", name: "Marley", amount: 500, paid: 0, toPay: 500, confirmed: true, date: "12 agosto" },
     ],
   },
   {
@@ -66,10 +90,20 @@ export const defaultCostCategories: CostCategory[] = [
     icon: "🎤",
     items: [
       { id: "c12", name: "La Niña", amount: 30000, paid: 0, toPay: 30000, confirmed: true, date: "13 agosto" },
-      { id: "c13", name: "Populous", amount: 2000, paid: 0, toPay: 2000, confirmed: true, date: "13 agosto" },
+      { id: "c12b", name: "OK Giorgio", amount: 13000, paid: 0, toPay: 13000, confirmed: true, date: "13 agosto" },
       { id: "c14", name: "Dimartino", amount: 5500, paid: 0, toPay: 5500, confirmed: true, date: "13 agosto" },
+      { id: "c14b", name: "Django Django", amount: 15000, paid: 0, toPay: 15000, confirmed: true, date: "13 agosto" },
       { id: "c15", name: "Maimaimai", amount: 800, paid: 0, toPay: 800, confirmed: true, date: "13 agosto" },
       { id: "c16", name: "Dead Letters", amount: 5000, paid: 0, toPay: 5000, confirmed: true, date: "13 agosto" },
+      { id: "c16b", name: "Marley", amount: 500, paid: 0, toPay: 500, confirmed: true, date: "13 agosto" },
+    ],
+  },
+  {
+    id: "cachet_extra",
+    label: "Cachet Extra",
+    icon: "🎤",
+    items: [
+      { id: "c17", name: "Cosmo", amount: 20000, paid: 0, toPay: 20000, confirmed: false, notes: "Solo al mattino" },
     ],
   },
   {

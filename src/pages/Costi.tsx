@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { CategoryCard } from "@/components/CategoryCard";
-import { getCategoryTotal, type CostItem } from "@/data/businessPlan";
+import { getCategoryTotalWithIva, withIva, type CostItem } from "@/data/businessPlan";
 import { formatCurrency } from "@/lib/format";
 import { StatCard } from "@/components/StatCard";
 import { Plus, Check, X, Pencil, Trash2, ChevronUp, ChevronDown, HandCoins } from "lucide-react";
@@ -13,7 +13,7 @@ import { useCostCategories } from "@/hooks/useBusinessData";
 function CostItemForm({
   form, setForm, onSubmit, onCancel, submitLabel, showConfirmed,
 }: {
-  form: { name: string; amount: string; paid: string; toPay: string; notes: string; confirmed: boolean; anticipoPersona: string; anticipoImporto: string };
+  form: { name: string; amount: string; paid: string; toPay: string; notes: string; confirmed: boolean; anticipoPersona: string; anticipoImporto: string; ivaRate: string };
   setForm: React.Dispatch<React.SetStateAction<typeof form>>;
   onSubmit: () => void;
   onCancel: () => void;
@@ -51,6 +51,10 @@ function CostItemForm({
           <Label className="text-sm">Confermato</Label>
         </div>
       )}
+      <div className="flex items-center gap-2 mt-1">
+        <Switch checked={parseFloat(form.ivaRate) > 0} onCheckedChange={(v) => setForm((f) => ({ ...f, ivaRate: v ? "10" : "0" }))} />
+        <Label className="text-sm">IVA {parseFloat(form.ivaRate) > 0 ? `${form.ivaRate}%` : "esclusa"}</Label>
+      </div>
       <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 space-y-2">
         <Label className="text-xs font-semibold text-primary flex items-center gap-1"><HandCoins className="h-3 w-3" /> Anticipo</Label>
         <div className="grid grid-cols-2 gap-2">
@@ -109,17 +113,18 @@ function CostItemDetail({ item, onEdit, onDelete, onMoveUp, onMoveDown, isFirst,
       </div>
       <div className="grid grid-cols-3 gap-2 text-xs">
         <div className="rounded bg-muted/60 p-2">
-          <p className="text-muted-foreground">Importo</p>
-          <p className="font-heading font-bold text-card-foreground">{formatCurrency(item.amount)}</p>
+          <p className="text-muted-foreground">Importo {item.ivaRate ? `+IVA ${item.ivaRate}%` : ""}</p>
+          <p className="font-heading font-bold text-card-foreground">{formatCurrency(withIva(item.amount, item.ivaRate ?? 10))}</p>
+          {(item.ivaRate ?? 10) > 0 && <p className="text-[10px] text-muted-foreground">Netto: {formatCurrency(item.amount)}</p>}
         </div>
         <div className="rounded bg-muted/60 p-2">
           <p className="text-muted-foreground">Pagato</p>
-          <p className="font-heading font-bold text-primary">{formatCurrency(item.paid)}</p>
+          <p className="font-heading font-bold text-primary">{formatCurrency(withIva(item.paid, item.ivaRate ?? 10))}</p>
         </div>
         <div className="rounded bg-muted/60 p-2">
           <p className="text-muted-foreground">Da pagare</p>
           <p className={`font-heading font-bold ${item.toPay > 0 ? "text-accent" : "text-card-foreground"}`}>
-            {formatCurrency(item.toPay)}
+            {formatCurrency(withIva(item.toPay, item.ivaRate ?? 10))}
           </p>
         </div>
       </div>
@@ -140,12 +145,12 @@ export default function CostiPage() {
   const { categories, loading, addItem, updateItem, deleteItem, moveItem } = useCostCategories();
   const [addingTo, setAddingTo] = useState<string | null>(null);
   const [editingItem, setEditingItem] = useState<string | null>(null);
-  const emptyForm = { name: "", amount: "", paid: "", toPay: "", notes: "", confirmed: false, anticipoPersona: "", anticipoImporto: "" };
+  const emptyForm = { name: "", amount: "", paid: "", toPay: "", notes: "", confirmed: false, anticipoPersona: "", anticipoImporto: "", ivaRate: "10" };
   const [form, setForm] = useState(emptyForm);
 
   const totals = categories.reduce(
     (acc, cat) => {
-      const t = getCategoryTotal(cat);
+      const t = getCategoryTotalWithIva(cat);
       return { amount: acc.amount + t.amount, paid: acc.paid + t.paid, toPay: acc.toPay + t.toPay };
     },
     { amount: 0, paid: 0, toPay: 0 }
@@ -168,6 +173,7 @@ export default function CostiPage() {
       confirmed: isCachetCategory(catId) ? form.confirmed : undefined,
       anticipoPersona: form.anticipoPersona || undefined,
       anticipoImporto: parseFloat(form.anticipoImporto) || undefined,
+      ivaRate: parseFloat(form.ivaRate) || 0,
     });
     resetForm();
   };
@@ -186,6 +192,7 @@ export default function CostiPage() {
       confirmed: isCachetCategory(catId) ? form.confirmed : undefined,
       anticipoPersona: form.anticipoPersona || undefined,
       anticipoImporto: parseFloat(form.anticipoImporto) || undefined,
+      ivaRate: parseFloat(form.ivaRate) || 0,
     });
     resetForm();
   };
@@ -206,6 +213,7 @@ export default function CostiPage() {
       confirmed: item.confirmed || false,
       anticipoPersona: item.anticipoPersona || "",
       anticipoImporto: item.anticipoImporto ? String(item.anticipoImporto) : "",
+      ivaRate: String(item.ivaRate ?? 10),
     });
   };
 
@@ -237,7 +245,7 @@ export default function CostiPage() {
         </div>
 
         {categories.map((cat, i) => {
-          const catTot = getCategoryTotal(cat);
+          const catTot = getCategoryTotalWithIva(cat);
           return (
             <CategoryCard
               key={cat.id}

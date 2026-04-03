@@ -24,6 +24,7 @@ export type Database = {
           created_at: string
           date: string | null
           id: string
+          iva_rate: number
           name: string
           notes: string | null
           paid: number
@@ -40,6 +41,7 @@ export type Database = {
           created_at?: string
           date?: string | null
           id?: string
+          iva_rate?: number
           name: string
           notes?: string | null
           paid?: number
@@ -56,6 +58,7 @@ export type Database = {
           created_at?: string
           date?: string | null
           id?: string
+          iva_rate?: number
           name?: string
           notes?: string | null
           paid?: number

@@ -19,6 +19,7 @@ function mapCostRows(rows: any[]): CostCategory[] {
         date: row.date || undefined,
         anticipoPersona: row.anticipo_persona || undefined,
         anticipoImporto: Number(row.anticipo_importo) || undefined,
+        ivaRate: row.iva_rate !== undefined ? Number(row.iva_rate) : 10,
       });
     }
   }
@@ -81,6 +82,7 @@ export function useCostCategories() {
       sort_order: nextOrder,
       anticipo_persona: item.anticipoPersona || null,
       anticipo_importo: item.anticipoImporto || 0,
+      iva_rate: item.ivaRate ?? 10,
     }).select().single();
     if (!error && data) {
       await fetchData();
@@ -129,6 +131,7 @@ export function useCostCategories() {
     if (item.date !== undefined) updates.date = item.date;
     if (item.anticipoPersona !== undefined) updates.anticipo_persona = item.anticipoPersona || null;
     if (item.anticipoImporto !== undefined) updates.anticipo_importo = item.anticipoImporto || 0;
+    if (item.ivaRate !== undefined) updates.iva_rate = item.ivaRate;
 
     const { error } = await supabase.from("cost_items").update(updates).eq("id", itemId);
     if (!error) await fetchData();
