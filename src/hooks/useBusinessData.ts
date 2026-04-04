@@ -37,6 +37,7 @@ function mapRevenueRows(rows: any[]): RevenueCategory[] {
         estimated: Number(row.estimated),
         actual: Number(row.actual),
         notes: row.notes || undefined,
+        isEstimate: row.is_estimate || false,
       });
     }
   }
