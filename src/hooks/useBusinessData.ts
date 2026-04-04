@@ -187,6 +187,7 @@ export function useRevenueCategories() {
     if (item.estimated !== undefined) updates.estimated = item.estimated;
     if (item.actual !== undefined) updates.actual = item.actual;
     if (item.notes !== undefined) updates.notes = item.notes || null;
+    if (item.isEstimate !== undefined) updates.is_estimate = item.isEstimate;
 
     const { error } = await supabase.from("revenue_items").update(updates).eq("id", itemId);
     if (!error) await fetchData();
