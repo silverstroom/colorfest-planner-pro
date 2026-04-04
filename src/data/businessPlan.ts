@@ -126,7 +126,7 @@ export const defaultCostCategories: CostCategory[] = [
   },
   {
     id: "sicurezza",
-    label: "Sicurezza & Sanitario",
+    label: "Noleggio e acquisti per produzione",
     icon: "🛡️",
     items: [],
   },
