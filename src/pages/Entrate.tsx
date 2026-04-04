@@ -40,7 +40,7 @@ interface DiceData {
 function RevenueItemForm({
   form, setForm, onSubmit, onCancel, submitLabel,
 }: {
-  form: { name: string; estimated: string; actual: string; notes: string };
+  form: { name: string; estimated: string; actual: string; notes: string; isEstimate: boolean };
   setForm: React.Dispatch<React.SetStateAction<typeof form>>;
   onSubmit: () => void;
   onCancel: () => void;
@@ -63,6 +63,17 @@ function RevenueItemForm({
         <Label className="text-xs text-muted-foreground mb-1 block">Note / Dettagli</Label>
         <Textarea placeholder="Dettagli incasso, riferimenti, stato..." value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} rows={2} />
       </div>
+      <label className="flex items-center gap-2 cursor-pointer">
+        <input
+          type="checkbox"
+          checked={form.isEstimate}
+          onChange={(e) => setForm((f) => ({ ...f, isEstimate: e.target.checked }))}
+          className="rounded border-border h-4 w-4 accent-primary"
+        />
+        <span className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+          <TrendingUp className="h-3 w-3" /> Stima incasso (previsione)
+        </span>
+      </label>
       <div className="flex gap-2">
         <button onClick={onSubmit} className="flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground">
           <Check className="h-3 w-3" /> {submitLabel}
