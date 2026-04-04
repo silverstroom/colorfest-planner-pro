@@ -46,6 +46,7 @@ export interface RevenueItem {
   estimated: number;
   actual: number;
   notes?: string;
+  isEstimate?: boolean;
 }
 
 export interface RevenueCategory {
