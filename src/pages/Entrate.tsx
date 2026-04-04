@@ -88,9 +88,16 @@ function RevenueItemForm({
 
 function RevenueItemDetail({ item, onEdit, onDelete }: { item: RevenueItem; onEdit: () => void; onDelete: () => void }) {
   return (
-    <div className="rounded-lg border border-border/50 bg-background/50 p-3 space-y-2">
+    <div className={`rounded-lg border p-3 space-y-2 ${item.isEstimate ? 'border-accent bg-accent/10' : 'border-border/50 bg-background/50'}`}>
       <div className="flex items-start justify-between">
-        <p className="font-semibold text-card-foreground">{item.name}</p>
+        <div className="flex items-center gap-2">
+          <p className="font-semibold text-card-foreground">{item.name}</p>
+          {item.isEstimate && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-accent/20 px-2 py-0.5 text-[10px] font-medium text-accent-foreground">
+              <TrendingUp className="h-2.5 w-2.5" /> Stima
+            </span>
+          )}
+        </div>
         <div className="flex gap-1">
           <button onClick={onEdit} className="rounded p-1 text-muted-foreground hover:text-foreground hover:bg-muted"><Pencil className="h-3.5 w-3.5" /></button>
           <button onClick={onDelete} className="rounded p-1 text-muted-foreground hover:text-destructive hover:bg-muted"><Trash2 className="h-3.5 w-3.5" /></button>
