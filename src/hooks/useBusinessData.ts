@@ -172,6 +172,7 @@ export function useRevenueCategories() {
       estimated: item.estimated,
       actual: item.actual,
       notes: item.notes || null,
+      is_estimate: item.isEstimate || false,
     }).select().single();
     if (!error && data) {
       await fetchData();
