@@ -83,6 +83,7 @@ export const defaultCostCategories: CostCategory[] = [
       { id: "c9", name: "Tutti Fenomeni", amount: 9000, paid: 0, toPay: 9000, confirmed: true, date: "12 agosto" },
       { id: "c10", name: "Nico Arezzo + Anna Castiglia", amount: 2500, paid: 0, toPay: 2500, confirmed: true, date: "12 agosto" },
       { id: "c11", name: "Marley", amount: 500, paid: 0, toPay: 500, confirmed: true, date: "12 agosto" },
+      { id: "c17", name: "Cosmo", amount: 20000, paid: 0, toPay: 20000, confirmed: false, date: "12 agosto", notes: "Solo al mattino" },
     ],
   },
   {
