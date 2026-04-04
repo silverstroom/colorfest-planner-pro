@@ -1,0 +1,1 @@
+ALTER TABLE public.revenue_items ADD COLUMN is_estimate boolean NOT NULL DEFAULT false;
