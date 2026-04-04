@@ -238,7 +238,7 @@ export default function EntratePage() {
   const { categories, loading, addItem, updateItem, deleteItem } = useRevenueCategories();
   const [addingTo, setAddingTo] = useState<string | null>(null);
   const [editingItem, setEditingItem] = useState<string | null>(null);
-  const emptyForm = { name: "", estimated: "", actual: "", notes: "" };
+  const emptyForm = { name: "", estimated: "", actual: "", notes: "", isEstimate: false };
   const [form, setForm] = useState(emptyForm);
 
   const [diceData, setDiceData] = useState<DiceData | null>(null);
