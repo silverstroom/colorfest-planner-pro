@@ -52,8 +52,16 @@ function CostItemForm({
         </div>
       )}
       <div className="flex items-center gap-2 mt-1">
-        <Switch checked={parseFloat(form.ivaRate) > 0} onCheckedChange={(v) => setForm((f) => ({ ...f, ivaRate: v ? "10" : "0" }))} />
-        <Label className="text-sm">IVA {parseFloat(form.ivaRate) > 0 ? `${form.ivaRate}%` : "esclusa"}</Label>
+        <Label className="text-sm">IVA:</Label>
+        <select
+          className="rounded border border-input bg-background px-2 py-1 text-sm"
+          value={form.ivaRate}
+          onChange={(e) => setForm((f) => ({ ...f, ivaRate: e.target.value }))}
+        >
+          <option value="0">Esclusa</option>
+          <option value="10">10%</option>
+          <option value="22">22%</option>
+        </select>
       </div>
       <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 space-y-2">
         <Label className="text-xs font-semibold text-primary flex items-center gap-1"><HandCoins className="h-3 w-3" /> Anticipo</Label>
