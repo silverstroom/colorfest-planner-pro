@@ -104,9 +104,7 @@ export const defaultCostCategories: CostCategory[] = [
     id: "cachet_extra",
     label: "Cachet Extra",
     icon: "🎤",
-    items: [
-      { id: "c17", name: "Cosmo", amount: 20000, paid: 0, toPay: 20000, confirmed: false, notes: "Solo al mattino" },
-    ],
+    items: [],
   },
   {
     id: "alloggi",
