@@ -3,7 +3,7 @@ import { CategoryCard } from "@/components/CategoryCard";
 import { getRevenueCategoryTotal, type RevenueItem } from "@/data/businessPlan";
 import { formatCurrency } from "@/lib/format";
 import { StatCard } from "@/components/StatCard";
-import { Plus, Check, X, Pencil, Trash2, RefreshCw, Ticket, ExternalLink, ChevronUp, ChevronDown } from "lucide-react";
+import { Plus, Check, X, Pencil, Trash2, RefreshCw, Ticket, ExternalLink, ChevronUp, ChevronDown, TrendingUp } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -40,7 +40,7 @@ interface DiceData {
 function RevenueItemForm({
   form, setForm, onSubmit, onCancel, submitLabel,
 }: {
-  form: { name: string; estimated: string; actual: string; notes: string };
+  form: { name: string; estimated: string; actual: string; notes: string; isEstimate: boolean };
   setForm: React.Dispatch<React.SetStateAction<typeof form>>;
   onSubmit: () => void;
   onCancel: () => void;
@@ -63,6 +63,17 @@ function RevenueItemForm({
         <Label className="text-xs text-muted-foreground mb-1 block">Note / Dettagli</Label>
         <Textarea placeholder="Dettagli incasso, riferimenti, stato..." value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} rows={2} />
       </div>
+      <label className="flex items-center gap-2 cursor-pointer">
+        <input
+          type="checkbox"
+          checked={form.isEstimate}
+          onChange={(e) => setForm((f) => ({ ...f, isEstimate: e.target.checked }))}
+          className="rounded border-border h-4 w-4 accent-primary"
+        />
+        <span className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+          <TrendingUp className="h-3 w-3" /> Stima incasso (previsione)
+        </span>
+      </label>
       <div className="flex gap-2">
         <button onClick={onSubmit} className="flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground">
           <Check className="h-3 w-3" /> {submitLabel}
@@ -77,9 +88,16 @@ function RevenueItemForm({
 
 function RevenueItemDetail({ item, onEdit, onDelete }: { item: RevenueItem; onEdit: () => void; onDelete: () => void }) {
   return (
-    <div className="rounded-lg border border-border/50 bg-background/50 p-3 space-y-2">
+    <div className={`rounded-lg border p-3 space-y-2 ${item.isEstimate ? 'border-accent bg-accent/10' : 'border-border/50 bg-background/50'}`}>
       <div className="flex items-start justify-between">
-        <p className="font-semibold text-card-foreground">{item.name}</p>
+        <div className="flex items-center gap-2">
+          <p className="font-semibold text-card-foreground">{item.name}</p>
+          {item.isEstimate && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-accent/20 px-2 py-0.5 text-[10px] font-medium text-accent-foreground">
+              <TrendingUp className="h-2.5 w-2.5" /> Stima
+            </span>
+          )}
+        </div>
         <div className="flex gap-1">
           <button onClick={onEdit} className="rounded p-1 text-muted-foreground hover:text-foreground hover:bg-muted"><Pencil className="h-3.5 w-3.5" /></button>
           <button onClick={onDelete} className="rounded p-1 text-muted-foreground hover:text-destructive hover:bg-muted"><Trash2 className="h-3.5 w-3.5" /></button>
@@ -220,7 +238,7 @@ export default function EntratePage() {
   const { categories, loading, addItem, updateItem, deleteItem } = useRevenueCategories();
   const [addingTo, setAddingTo] = useState<string | null>(null);
   const [editingItem, setEditingItem] = useState<string | null>(null);
-  const emptyForm = { name: "", estimated: "", actual: "", notes: "" };
+  const emptyForm = { name: "", estimated: "", actual: "", notes: "", isEstimate: false };
   const [form, setForm] = useState(emptyForm);
 
   const [diceData, setDiceData] = useState<DiceData | null>(null);
@@ -266,6 +284,7 @@ export default function EntratePage() {
       estimated: parseFloat(form.estimated) || 0,
       actual: parseFloat(form.actual) || 0,
       notes: form.notes || undefined,
+      isEstimate: form.isEstimate,
     });
     resetForm();
   };
@@ -277,6 +296,7 @@ export default function EntratePage() {
       estimated: parseFloat(form.estimated) || 0,
       actual: parseFloat(form.actual) || 0,
       notes: form.notes || undefined,
+      isEstimate: form.isEstimate,
     });
     resetForm();
   };
@@ -287,7 +307,7 @@ export default function EntratePage() {
 
   const startEdit = (item: RevenueItem) => {
     setEditingItem(item.id); setAddingTo(null);
-    setForm({ name: item.name, estimated: String(item.estimated), actual: String(item.actual), notes: item.notes || "" });
+    setForm({ name: item.name, estimated: String(item.estimated), actual: String(item.actual), notes: item.notes || "", isEstimate: item.isEstimate || false });
   };
 
   if (loading) {

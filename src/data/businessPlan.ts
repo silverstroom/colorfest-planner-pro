@@ -46,6 +46,7 @@ export interface RevenueItem {
   estimated: number;
   actual: number;
   notes?: string;
+  isEstimate?: boolean;
 }
 
 export interface RevenueCategory {
@@ -139,6 +140,12 @@ export const defaultCostCategories: CostCategory[] = [
 ];
 
 export const defaultRevenueCategories: RevenueCategory[] = [
+  {
+    id: "stima_biglietti",
+    label: "Stima Biglietti",
+    icon: "🎟️",
+    items: [],
+  },
   {
     id: "bar",
     label: "Bar & Food",

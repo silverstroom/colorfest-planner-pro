@@ -37,6 +37,7 @@ function mapRevenueRows(rows: any[]): RevenueCategory[] {
         estimated: Number(row.estimated),
         actual: Number(row.actual),
         notes: row.notes || undefined,
+        isEstimate: row.is_estimate || false,
       });
     }
   }
@@ -171,6 +172,7 @@ export function useRevenueCategories() {
       estimated: item.estimated,
       actual: item.actual,
       notes: item.notes || null,
+      is_estimate: item.isEstimate || false,
     }).select().single();
     if (!error && data) {
       await fetchData();
@@ -185,6 +187,7 @@ export function useRevenueCategories() {
     if (item.estimated !== undefined) updates.estimated = item.estimated;
     if (item.actual !== undefined) updates.actual = item.actual;
     if (item.notes !== undefined) updates.notes = item.notes || null;
+    if (item.isEstimate !== undefined) updates.is_estimate = item.isEstimate;
 
     const { error } = await supabase.from("revenue_items").update(updates).eq("id", itemId);
     if (!error) await fetchData();

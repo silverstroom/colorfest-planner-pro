@@ -75,6 +75,7 @@ export type Database = {
           created_at: string
           estimated: number
           id: string
+          is_estimate: boolean
           name: string
           notes: string | null
           updated_at: string
@@ -85,6 +86,7 @@ export type Database = {
           created_at?: string
           estimated?: number
           id?: string
+          is_estimate?: boolean
           name: string
           notes?: string | null
           updated_at?: string
@@ -95,6 +97,7 @@ export type Database = {
           created_at?: string
           estimated?: number
           id?: string
+          is_estimate?: boolean
           name?: string
           notes?: string | null
           updated_at?: string
