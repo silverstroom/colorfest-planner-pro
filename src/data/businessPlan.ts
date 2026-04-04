@@ -141,6 +141,12 @@ export const defaultCostCategories: CostCategory[] = [
 
 export const defaultRevenueCategories: RevenueCategory[] = [
   {
+    id: "stima_biglietti",
+    label: "Stima Biglietti",
+    icon: "🎟️",
+    items: [],
+  },
+  {
     id: "bar",
     label: "Bar & Food",
     icon: "🍺",
