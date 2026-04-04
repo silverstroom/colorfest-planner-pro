@@ -3,7 +3,7 @@ import { CategoryCard } from "@/components/CategoryCard";
 import { getRevenueCategoryTotal, type RevenueItem } from "@/data/businessPlan";
 import { formatCurrency } from "@/lib/format";
 import { StatCard } from "@/components/StatCard";
-import { Plus, Check, X, Pencil, Trash2, RefreshCw, Ticket, ExternalLink, ChevronUp, ChevronDown } from "lucide-react";
+import { Plus, Check, X, Pencil, Trash2, RefreshCw, Ticket, ExternalLink, ChevronUp, ChevronDown, TrendingUp } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
