@@ -284,6 +284,7 @@ export default function EntratePage() {
       estimated: parseFloat(form.estimated) || 0,
       actual: parseFloat(form.actual) || 0,
       notes: form.notes || undefined,
+      isEstimate: form.isEstimate,
     });
     resetForm();
   };
