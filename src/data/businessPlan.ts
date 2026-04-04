@@ -131,12 +131,6 @@ export const defaultCostCategories: CostCategory[] = [
     items: [],
   },
   {
-    id: "allestimenti",
-    label: "Allestimenti",
-    icon: "🎪",
-    items: [],
-  },
-  {
     id: "altro",
     label: "Altro",
     icon: "📦",
