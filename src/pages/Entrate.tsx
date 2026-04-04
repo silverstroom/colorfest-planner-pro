@@ -305,7 +305,7 @@ export default function EntratePage() {
 
   const startEdit = (item: RevenueItem) => {
     setEditingItem(item.id); setAddingTo(null);
-    setForm({ name: item.name, estimated: String(item.estimated), actual: String(item.actual), notes: item.notes || "" });
+    setForm({ name: item.name, estimated: String(item.estimated), actual: String(item.actual), notes: item.notes || "", isEstimate: item.isEstimate || false });
   };
 
   if (loading) {
